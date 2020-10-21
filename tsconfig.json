@@ -1,0 +1,16 @@
+{
+    "compilerOptions": {
+        "module": "commonjs",
+        "target": "es2018",
+        "baseUrl": "./src",
+        "noImplicitAny": false,
+        "strictPropertyInitialization": false,
+        "sourceMap": false,
+        "typeRoots": ["node_modules/@types"],
+        "outDir": "dist",
+        "declaration": true,
+        "experimentalDecorators": true,
+        "esModuleInterop": true
+    },
+    "exclude": [".git", ".cache", "node_modules", "logs", "**/*.d.ts"]
+}
