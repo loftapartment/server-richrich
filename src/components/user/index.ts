@@ -1,0 +1,1 @@
+export * as IUser from './_index';
