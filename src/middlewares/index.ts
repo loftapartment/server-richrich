@@ -1,1 +1,1 @@
-export * as Middleware from './permission';
+export * as Middleware from './_index';
