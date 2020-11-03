@@ -10,7 +10,8 @@
         "outDir": "dist",
         "declaration": true,
         "experimentalDecorators": true,
-        "esModuleInterop": true
+        "esModuleInterop": true,
+        "emitDecoratorMetadata": true
     },
     "exclude": [".git", ".cache", "node_modules", "logs", "**/*.d.ts"]
 }
