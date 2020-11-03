@@ -1,1 +1,3 @@
-export * as Middleware from './_index';
+import * as Middleware from './_index';
+
+export { Middleware }
