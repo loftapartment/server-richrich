@@ -1,1 +1,3 @@
-export * as IUser from './_index';
+import * as IUser from './_index';
+
+export { IUser };
