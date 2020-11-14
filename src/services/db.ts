@@ -1,4 +1,4 @@
-import mongoose from 'mongoose';
+import { MongoClient, Db } from 'mongodb';
 
 const ip: string = process.env.DB_IP;
 const port: number = parseInt(process.env.DB_PORT);
@@ -18,9 +18,9 @@ class Service {
     /**
      *
      */
-    private _dbClient: mongoose.Mongoose = null;
-    public get dbClient(): mongoose.Mongoose {
-        return this._dbClient;
+    private _db: Db = null;
+    public get db(): Db {
+        return this._db;
     }
 
     constructor() {
@@ -33,15 +33,18 @@ class Service {
      */
     public async connect() {
         try {
-            this._dbClient = await mongoose.connect(this.baseUrl, {
+            let client = new MongoClient(this.baseUrl, {
                 auth: {
                     user: account,
                     password: password,
                 },
-                dbName: dbName,
                 useNewUrlParser: true,
                 useUnifiedTopology: true,
             });
+
+            await client.connect();
+
+            this._db = client.db(dbName);
         } catch (error) {
             throw error;
         }
