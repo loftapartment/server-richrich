@@ -1,3 +1,6 @@
+import { IUser } from "components";
+import { DbService } from "../../services";
+
 export namespace Utility {
     /**
      * kill this process
@@ -13,6 +16,31 @@ export namespace Utility {
      */
     export function isNull(data: any): boolean {
         return data === null || data === undefined;
+    }
+
+    /**
+     * 
+     * @param key 
+     * @param src 
+     */
+    export function validateEmpty(key: string, src: any): void
+    export function validateEmpty(key: string, src: any, isRequired: boolean): void
+    export function validateEmpty(key: string, src: any, isRequired?: boolean): void {
+        if (!src) {
+            throw new Error('no any value');
+        }
+
+        if (typeof src === 'object') {
+            if (isRequired) {
+                if (!src[key]) {
+                    throw new Error(`${key} can not empty`);
+                }
+            } else if (key in src) {
+                if (!src[key]) {
+                    throw new Error(`${key} can not empty`);
+                }
+            }
+        }
     }
 
     /**
@@ -40,6 +68,60 @@ export namespace Utility {
             }
 
             return data;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    /**
+     * get enum key
+     * @description only get value is number's key
+     */
+    export function getEnumKeys(value: object): string[] {
+        try {
+            return Object.keys(value).filter(x => typeof x === 'string');
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    /**
+     * parse date from json
+     */
+    export function parseDate(value: any): Date {
+        try {
+            let date: Date = new Date(value);
+            if (date.toString() === 'Invalid Date') {
+                return undefined;
+            }
+            return date;
+        } catch (error) {
+            return undefined;
+        }
+    }
+
+    /**
+     * checkRepeat
+     * @param key 
+     * @param collectionName 
+     */
+    export async function checkRepeat<T>(key: string, collectionName: string, input: T): Promise<void>
+    export async function checkRepeat<T>(key: string, collectionName: string, input: T, excludeId: string): Promise<void>
+    export async function checkRepeat<T>(key: string, collectionName: string, input: T, excludeId?: string): Promise<void> {
+        try {
+            let db = DbService.db;
+            let collection = db.collection(collectionName);
+
+            let data = await collection.findOne({
+                [key]: input[key],
+                _id: {
+                    $ne: excludeId
+                }
+            });
+
+            if (!!data) {
+                throw new Error(`${key} '${input[key]}' already exist`);
+            }
         } catch (error) {
             throw error;
         }
