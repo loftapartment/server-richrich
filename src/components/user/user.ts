@@ -1,7 +1,4 @@
-import { IBase } from '../base-model';
-
-import { getModelForClass, ModelOptions, mongoose, prop } from '@typegoose/typegoose';
-import { IUser } from '.';
+import { getModelForClass, ModelOptions, prop } from '@typegoose/typegoose';
 
 export enum ERole {
     Admin = 1,
@@ -26,17 +23,17 @@ export class UserClass {
     password: string;
 
     /**
+     *
+     */
+    @prop()
+    name: string;
+
+    /**
      * googleAuth
      * @description google oAuth
      */
     @prop({ default: false })
     googleAuth?: boolean;
-
-    /**
-     *
-     */
-    @prop()
-    name: string;
 
     /**
      *
@@ -102,18 +99,3 @@ export class UserClass {
 
 export const User = getModelForClass(UserClass);
 
-//#region request
-
-//#endregion
-
-//#region response
-export interface IUserR {
-    id: string;
-    email: UserClass['email'];
-    name: UserClass['name'];
-    role: string;
-    groups: IBase.IResponse.IObject[];
-    friends: IBase.IResponse.IObject[];
-    imageSrc: string;
-}
-//#endregion

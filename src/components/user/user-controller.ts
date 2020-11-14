@@ -6,7 +6,7 @@ export namespace UserController {
     /**
      * getAllUsers
      */
-    export async function getAllUsers(): Promise<IUser.IUserR[]> {
+    export async function getAllUsers(): Promise<IUser.IModel.IResponse.IUserR[]> {
         try {
             let users: DocumentType<IUser.UserClass>[] = await IUser.UserDAL.getAllUsers();
             return await Promise.all(users.map(async (user) => {
