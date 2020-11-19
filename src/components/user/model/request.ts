@@ -1,10 +1,10 @@
-import { IUser } from "..";
+import { UserComponent } from "..";
 
 export namespace IRequest {
     export interface IUserBaseC {
         email: string;
         name: string;
-        gender: keyof typeof IUser.EGender;
+        gender: keyof typeof UserComponent.EGender;
         groupIds?: string[];
         friendIds?: string[];
         imageBase64?: string;

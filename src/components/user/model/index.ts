@@ -1,1 +1,3 @@
-export * as IModel from './_index';
+import * as IModel from './_index';
+
+export { IModel };

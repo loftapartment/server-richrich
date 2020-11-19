@@ -1,14 +1,14 @@
 import express, { Request, Response } from 'express';
+import { IModel } from './model';
+import { UserComponent } from '../index';
 import { Utility } from '../../helpers';
 import { Middleware } from '../../middlewares';
-import { IUser } from './index';
 
-const router = express.Router();
 const _API_BASE = process.env.API_BASE;
 
-export const UserApi = router;
+export const UserApi = express.Router();
 
-router
+UserApi
     .route(`${_API_BASE}/user`)
     .get(
         [
@@ -16,7 +16,7 @@ router
         ],
         async (req: Request, res: Response) => {
             try {
-                let results: IUser.IModel.IResponse.IUserR[] = await IUser.UserController.getAllUsers();
+                let results: IModel.IResponse.IUserR[] = await UserComponent.UserController.getAllUsers();
 
                 results = Utility.removeRebundant(results);
 
@@ -26,13 +26,28 @@ router
             }
         });
 
-router.route(`${_API_BASE}/user/sign-up`)
+UserApi.route(`${_API_BASE}/user/sign-up`)
     .post(
         [
-            Middleware.permission
+            Middleware.validate('User')
         ],
         async (req: Request, res: Response) => {
-            
+            let _input: IModel.IRequest.IUserC = res['input'];
+
+            try {
+                let isGoogle: boolean = !!_input['googleIdToken'];
+                if (isGoogle) {
+                    // check whether this email is already binding
+
+
+                } else {
+
+                }
+
+                res.send(new Date());
+            } catch (error) {
+                res.end(error);
+            }
         });
 
 

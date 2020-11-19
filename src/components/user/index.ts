@@ -1,3 +1,3 @@
-import * as IUser from './_index';
+import * as UserComponent from './_index';
 
-export { IUser };
+export { UserComponent };

@@ -1,30 +1,24 @@
-import { DocumentType } from "@typegoose/typegoose";
-import { IBase } from "components/base-model";
-import { IUser } from ".";
+import { IBase } from "../base-model";
+import { UserComponent } from ".";
 
 export namespace UserController {
     /**
      * getAllUsers
      */
-    export async function getAllUsers(): Promise<IUser.IModel.IResponse.IUserR[]> {
+    export async function getAllUsers(): Promise<UserComponent.IModel.IResponse.IUserR[]> {
         try {
-            let users: DocumentType<IUser.UserClass>[] = await IUser.UserDAL.getAllUsers();
+            let users: IBase.MongoData<UserComponent.IUser>[] = await UserComponent.UserDAL.getAllUsers();
             return await Promise.all(users.map(async (user) => {
-                let friends: IBase.IResponse.IObject[] = (await IUser.User.find({ friendIds: user.friendIds })).map((friend) => {
-                    return {
-                        id: friend.id,
-                        name: friend.name
-                    }
-                });
+                let friends: IBase.IResponse.IObject[] = [];
 
                 let groups: IBase.IResponse.IObject[] = [];
 
                 return {
-                    id: user.id,
+                    id: user._id.toHexString(),
                     email: user.email,
                     name: user.name,
                     imageSrc: user.imageSrc,
-                    role: IUser.ERole[user.role],
+                    role: UserComponent.ERole[user.role],
                     friends,
                     groups
                 }
@@ -33,4 +27,5 @@ export namespace UserController {
             throw error;
         }
     }
+
 }

@@ -1,6 +1,5 @@
-import { getModelForClass, ModelOptions, prop } from '@typegoose/typegoose';
 import { Utility, Validator } from '../../helpers';
-import { IUser } from '.';
+import { UserComponent } from '.';
 
 export enum ERole {
     Admin = 1,
@@ -13,143 +12,135 @@ export enum EGender {
     female,
 }
 
-@ModelOptions({ schemaOptions: { timestamps: true, collection: 'User' } })
-export class UserClass {
+export interface IUser {
     /**
      * email
      * @unique
      * @description use email as account
-     */
-    @prop()
+    */
     email: string;
 
     /**
      *
-     */
-    @prop()
+    */
     password: string;
 
     /**
      *
      */
-    @prop()
     name: string;
 
     /**
      * 
      */
-    @prop()
     gender?: EGender;
 
     /**
      * googleAuth
      * @description google oAuth
      */
-    @prop({ default: false })
     googleAuth?: boolean;
 
     /**
      *
      */
-    @prop({ default: ERole.User })
     role?: ERole;
 
     /**
      * groupIds
      * @class Group
      */
-    @prop()
     groupIds?: string[];
 
     /**
      * friendIds
      * @class User
      */
-    @prop()
     friendIds?: string[];
 
     /**
      * image src
      */
-    @prop()
     imageSrc?: string;
 
     /**
      *
      */
-    @prop()
     friendYouOweIds?: string[];
 
     /**
      *
      */
-    @prop()
     friendWhoOweIds?: string[];
 
     /**
      *
      */
-    @prop()
     groupYouOweIds?: string[];
 
     /**
      *
      */
-    @prop()
     groupWhoOweIds?: string[];
+}
 
-    /**
-     * 
-     */
-    public static async validate(input: IUser.IModel.IRequest.IUserC | IUser.IModel.IRequest.IUserU): Promise<void> {
+export namespace IUser {
+    export const name = 'User';
+
+    export async function validate(input: UserComponent.IModel.IRequest.IUserC | UserComponent.IModel.IRequest.IUserU): Promise<UserComponent.IModel.IRequest.IUserC | UserComponent.IModel.IRequest.IUserU> {
         try {
-            Utility.validateEmpty('email', input, true);
-            if (!Validator.isEmail(input.email)) {
+            let innerInput = JSON.parse(JSON.stringify(input));
+
+            Utility.validateEmpty('email', innerInput, true);
+            if (!Validator.isEmail(innerInput.email)) {
                 throw new Error('email format invalid');
             }
 
             Utility.validateEmpty('name', input, true);
 
-            if ('gender' in input) {
+            if ('gender' in innerInput) {
                 let validateValues: string[] = Utility.getEnumKeys(EGender);
-                if (validateValues.indexOf(input.gender) === -1) {
+                if (validateValues.indexOf(innerInput.gender) === -1) {
                     throw new Error(`gender should be 'male' or 'female'`);
                 }
             }
 
-            if ('groupIds' in input) {
-                if (!Array.isArray(input.groupIds)) {
+            if ('groupIds' in innerInput) {
+                if (!Array.isArray(innerInput.groupIds)) {
                     throw new Error(`groupIds should be an string array`);
                 }
             }
 
-            if ('friendIds' in input) {
-                if (!Array.isArray(input.groupIds)) {
+            if ('friendIds' in innerInput) {
+                if (!Array.isArray(innerInput.groupIds)) {
                     throw new Error(`groupIds should be an string array`);
                 }
             }
 
-            Utility.validateEmpty('imageBase64', input);
+            Utility.validateEmpty('imageBase64', innerInput);
 
-            if ('googleIdToken' in input) {
-                Utility.validateEmpty('googleIdToken', input, true);
-            } else if (!input.password) {
+            if ('googleIdToken' in innerInput) {
+                Utility.validateEmpty('googleIdToken', innerInput, true);
+            } else if (!innerInput.password) {
                 throw new Error('googleIdToken and password can not both empty');
             }
 
             /// check repeat
             let excludeId: string = '';
-            if ('id' in input) {
-                excludeId = input.id;
+            if ('id' in innerInput) {
+                excludeId = innerInput.id;
             }
 
-            await Utility.checkRepeat('email', User.collection.name, input, excludeId);
+            await Utility.checkRepeat('email', name, innerInput, excludeId);
 
+            return innerInput;
         } catch (error) {
             throw error;
         }
     }
 }
 
-export const User = getModelForClass(UserClass);
+
+
+
 

@@ -1,4 +1,3 @@
-import { IUser } from "components";
 import { DbService } from "../../services";
 
 export namespace Utility {

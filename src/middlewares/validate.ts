@@ -1,4 +1,4 @@
-import { IUser } from '../components';
+import { UserComponent } from '../components';
 import { RequestHandler } from 'express';
 import { Utility } from '../helpers';
 
@@ -12,7 +12,7 @@ export const validate = (className: string): RequestHandler => async (req, res, 
     switch (className) {
         case 'User':
             try {
-                await IUser.User.validate(_input);
+                res['input'] = await UserComponent.IUser.validate(_input);
             } catch (error) {
                 return res.status(400).end(Utility.handleError(error));
             }
