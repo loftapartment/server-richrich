@@ -26,10 +26,11 @@ UserApi
             }
         });
 
-UserApi.route(`${_API_BASE}/user/sign-up`)
+UserApi
+    .route(`${_API_BASE}/user/sign-up`)
     .post(
         [
-            Middleware.validate('User')
+            Middleware.validate(UserComponent.IUser)
         ],
         async (req: Request, res: Response) => {
             let _input: IModel.IRequest.IUserC = res['input'];
