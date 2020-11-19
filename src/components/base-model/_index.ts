@@ -6,6 +6,16 @@ export type MongoData<T> = {
     _updated_at?: Date;
 } & T;
 
+export interface IGetOptions<T> {
+    equals?: (keyof T)[];
+    notEquals?: (keyof T)[];
+}
+
+export interface ICollection {
+    readonly collectionName: string;
+    validate: Function;
+}
+
 import * as IResponse from './response';
 
 export { IResponse };

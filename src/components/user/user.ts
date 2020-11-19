@@ -1,5 +1,6 @@
 import { Utility, Validator } from '../../helpers';
 import { UserComponent } from '.';
+import { IBase } from '../base-model';
 
 export enum ERole {
     Admin = 1,
@@ -84,10 +85,19 @@ export interface IUser {
     groupWhoOweIds?: string[];
 }
 
-export namespace IUser {
-    export const name = 'User';
+export class User implements IBase.ICollection {
+    /**
+     * 
+     */
+    public get collectionName(): string {
+        return User.name;
+    }
 
-    export async function validate(input: UserComponent.IModel.IRequest.IUserC | UserComponent.IModel.IRequest.IUserU): Promise<UserComponent.IModel.IRequest.IUserC | UserComponent.IModel.IRequest.IUserU> {
+    /**
+     * 
+     * @param input 
+     */
+    public async validate(input: UserComponent.IModel.IRequest.IUserC | UserComponent.IModel.IRequest.IUserU): Promise<UserComponent.IModel.IRequest.IUserC | UserComponent.IModel.IRequest.IUserU> {
         try {
             let innerInput = JSON.parse(JSON.stringify(input));
 
@@ -131,7 +141,7 @@ export namespace IUser {
                 excludeId = innerInput.id;
             }
 
-            await Utility.checkRepeat('email', name, innerInput, excludeId);
+            await Utility.checkRepeat('email', this.collectionName, innerInput, excludeId);
 
             return innerInput;
         } catch (error) {
@@ -139,6 +149,9 @@ export namespace IUser {
         }
     }
 }
+
+
+
 
 
 

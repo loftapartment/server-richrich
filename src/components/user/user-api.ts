@@ -3,6 +3,7 @@ import { IModel } from './model';
 import { UserComponent } from '../index';
 import { Utility } from '../../helpers';
 import { Middleware } from '../../middlewares';
+import { User } from './user';
 
 const _API_BASE = process.env.API_BASE;
 
@@ -30,7 +31,7 @@ UserApi
     .route(`${_API_BASE}/user/sign-up`)
     .post(
         [
-            Middleware.validate(UserComponent.IUser)
+            Middleware.validate(new User)
         ],
         async (req: Request, res: Response) => {
             let _input: IModel.IRequest.IUserC = res['input'];
@@ -38,7 +39,6 @@ UserApi
             try {
                 let isGoogle: boolean = !!_input['googleIdToken'];
                 if (isGoogle) {
-                    // check whether this email is already binding
 
 
                 } else {
@@ -47,7 +47,7 @@ UserApi
 
                 res.send(new Date());
             } catch (error) {
-                res.end(error);
+                res.end(error instanceof Error ? error.message : error);
             }
         });
 
