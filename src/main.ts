@@ -1,6 +1,9 @@
+import './config';
+import './app';
+
 import { app } from './app';
 import { DbService } from './services';
-import { Utility } from './helpers';
+import { Random, Utility } from './helpers';
 
 let port: number = parseInt(process.env.PORT) || 3000;
 
@@ -16,6 +19,7 @@ let port: number = parseInt(process.env.PORT) || 3000;
             console.log(`app running on port \u001b[33m${port}\u001b[0m...`);
             console.log();
         });
+
     } catch (error) {
         console.error(error);
 

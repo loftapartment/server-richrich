@@ -1,3 +1,1 @@
-import './config';
-import './app';
-import './server';
+import './main';
