@@ -32,9 +32,11 @@ export namespace UserController {
     /**
      * getUsers
      */
-    export async function getUsers(src: Partial<UserComponent.IModel.IUser>, options: IBase.IGetOptions<UserComponent.IModel.IUser>): Promise<UserComponent.IModel.IResponse.IUserR[]> {
+    export async function getUsers(): Promise<UserComponent.IModel.IResponse.IUserR[]>
+    export async function getUsers(options: IBase.IGetOptions<UserComponent.IModel.IUser>): Promise<UserComponent.IModel.IResponse.IUserR[]>
+    export async function getUsers(options?: IBase.IGetOptions<UserComponent.IModel.IUser>): Promise<UserComponent.IModel.IResponse.IUserR[]> {
         try {
-            let users: IBase.MongoData<UserComponent.IModel.IUser>[] = await UserComponent.UserDAL.getUsers(src, options);
+            let users: IBase.MongoData<UserComponent.IModel.IUser>[] = await UserComponent.UserDAL.getUsers(options);
             return await Promise.all(users.map(async (user) => {
                 let friends: IBase.IResponse.IObject[] = [];
 

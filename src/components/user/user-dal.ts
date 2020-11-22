@@ -36,9 +36,9 @@ export namespace UserDAL {
     /**
      * 
      */
-    export async function getUsers(src: Partial<IModel.IUser>): Promise<TOutputR[]>
-    export async function getUsers(src: Partial<IModel.IUser>, options: IBase.IGetOptions<IModel.IUser>): Promise<TOutputR[]>
-    export async function getUsers(src: Partial<IModel.IUser>, options?: IBase.IGetOptions<IModel.IUser>): Promise<TOutputR[]> {
+    export async function getUsers(): Promise<TOutputR[]>
+    export async function getUsers(options: IBase.IGetOptions<IModel.IUser>): Promise<TOutputR[]>
+    export async function getUsers(options?: IBase.IGetOptions<IModel.IUser>): Promise<TOutputR[]> {
         try {
             if (!options) {
                 return getAllUsers();
@@ -48,7 +48,7 @@ export namespace UserDAL {
             if (options.equals) {
                 Object.keys(options.equals).forEach((key) => {
                     query[`${key}`] = {
-                        $eq: src[key]
+                        $eq: options.equals[key]
                     }
                 })
             }
@@ -56,7 +56,7 @@ export namespace UserDAL {
             if (options.notEquals) {
                 Object.keys(options.equals).forEach((key) => {
                     query[`${key}`] = {
-                        $ne: src[key]
+                        $ne: options.notEquals[key]
                     }
                 })
             }
