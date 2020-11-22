@@ -7,8 +7,8 @@ export type MongoData<T> = {
 } & T;
 
 export interface IGetOptions<T> {
-    equals?: (keyof T)[];
-    notEquals?: (keyof T)[];
+    equals?: Partial<T>;
+    notEquals?: Partial<T>;
 }
 
 export interface ICollection {
