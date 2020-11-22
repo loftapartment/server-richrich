@@ -1,13 +1,13 @@
-import { UserComponent } from '.';
 import { IBase } from '../base-model';
 import { DbService } from '../../services'
 import { Collection, FilterQuery, Cursor } from 'mongodb';
+import { IModel } from './model';
 
 export namespace UserDAL {
     /**
      * 
      */
-    type TOutputR = IBase.MongoData<UserComponent.IUser>;
+    type TOutputR = IBase.MongoData<IModel.IUser>;
 
     function getCollection<T>(model: IBase.ICollection): Collection<T> {
         let db = DbService.db;
@@ -19,7 +19,7 @@ export namespace UserDAL {
      */
     export async function getAllUsers(): Promise<TOutputR[]> {
         try {
-            let collection: Collection<TOutputR> = getCollection<UserComponent.IUser>(new UserComponent.User);
+            let collection: Collection<TOutputR> = getCollection<IModel.IUser>(new IModel.User);
 
             let count: number = await collection.find().count();
             let results: TOutputR[] = await collection
@@ -36,32 +36,32 @@ export namespace UserDAL {
     /**
      * 
      */
-    export async function getUsers(src: Partial<UserComponent.IUser>): Promise<TOutputR[]>
-    export async function getUsers(src: Partial<UserComponent.IUser>, options: IBase.IGetOptions<UserComponent.IUser>): Promise<TOutputR[]>
-    export async function getUsers(src: Partial<UserComponent.IUser>, options?: IBase.IGetOptions<UserComponent.IUser>): Promise<TOutputR[]> {
+    export async function getUsers(src: Partial<IModel.IUser>): Promise<TOutputR[]>
+    export async function getUsers(src: Partial<IModel.IUser>, options: IBase.IGetOptions<IModel.IUser>): Promise<TOutputR[]>
+    export async function getUsers(src: Partial<IModel.IUser>, options?: IBase.IGetOptions<IModel.IUser>): Promise<TOutputR[]> {
         try {
             if (!options) {
                 return getAllUsers();
             }
 
-            let query: FilterQuery<IBase.MongoData<UserComponent.IUser>> = {};
-            if (options.equals && options.equals.length > 0) {
-                options.equals.forEach((key) => {
+            let query: FilterQuery<IBase.MongoData<IModel.IUser>> = {};
+            if (options.equals) {
+                Object.keys(options.equals).forEach((key) => {
                     query[`${key}`] = {
                         $eq: src[key]
                     }
                 })
             }
 
-            if (options.notEquals && options.notEquals.length > 0) {
-                options.notEquals.forEach((key) => {
+            if (options.notEquals) {
+                Object.keys(options.equals).forEach((key) => {
                     query[`${key}`] = {
                         $ne: src[key]
                     }
                 })
             }
 
-            let collection = await getCollection<UserComponent.IUser>(new UserComponent.User);
+            let collection = await getCollection<IModel.IUser>(new IModel.User);
             let cursor: Cursor = collection.find(query);
 
             let count: number = await collection.find(query).count();

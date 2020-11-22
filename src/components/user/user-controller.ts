@@ -7,7 +7,7 @@ export namespace UserController {
      */
     export async function getAllUsers(): Promise<UserComponent.IModel.IResponse.IUserR[]> {
         try {
-            let users: IBase.MongoData<UserComponent.IUser>[] = await UserComponent.UserDAL.getAllUsers();
+            let users: IBase.MongoData<UserComponent.IModel.IUser>[] = await UserComponent.UserDAL.getAllUsers();
 
             return await Promise.all(users.map(async (user) => {
                 let friends: IBase.IResponse.IObject[] = [];
@@ -19,7 +19,7 @@ export namespace UserController {
                     email: user.email,
                     name: user.name,
                     imageSrc: user.imageSrc,
-                    role: UserComponent.ERole[user.role],
+                    role: UserComponent.IModel.ERole[user.role],
                     friends,
                     groups
                 }
@@ -32,9 +32,9 @@ export namespace UserController {
     /**
      * getUsers
      */
-    export async function getUsers(src: Partial<UserComponent.IUser>, options: IBase.IGetOptions<UserComponent.IUser>): Promise<UserComponent.IModel.IResponse.IUserR[]> {
+    export async function getUsers(src: Partial<UserComponent.IModel.IUser>, options: IBase.IGetOptions<UserComponent.IModel.IUser>): Promise<UserComponent.IModel.IResponse.IUserR[]> {
         try {
-            let users: IBase.MongoData<UserComponent.IUser>[] = await UserComponent.UserDAL.getUsers(src, options);
+            let users: IBase.MongoData<UserComponent.IModel.IUser>[] = await UserComponent.UserDAL.getUsers(src, options);
             return await Promise.all(users.map(async (user) => {
                 let friends: IBase.IResponse.IObject[] = [];
 
@@ -45,7 +45,7 @@ export namespace UserController {
                     email: user.email,
                     name: user.name,
                     imageSrc: user.imageSrc,
-                    role: UserComponent.ERole[user.role],
+                    role: UserComponent.IModel.ERole[user.role],
                     friends,
                     groups
                 }

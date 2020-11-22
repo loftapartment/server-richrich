@@ -3,7 +3,6 @@ import { IModel } from './model';
 import { UserComponent } from '../index';
 import { Utility } from '../../helpers';
 import { Middleware } from '../../middlewares';
-import { User } from './user';
 
 const _API_BASE = process.env.API_BASE;
 
@@ -31,7 +30,7 @@ UserApi
     .route(`${_API_BASE}/user/sign-up`)
     .post(
         [
-            Middleware.validate(new User)
+            Middleware.validate(new IModel.User)
         ],
         async (req: Request, res: Response) => {
             let _input: IModel.IRequest.IUserC = res['input'];

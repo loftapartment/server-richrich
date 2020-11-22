@@ -1,6 +1,6 @@
-import { Utility, Validator } from '../../helpers';
-import { UserComponent } from '.';
-import { IBase } from '../base-model';
+import { Utility, Validator } from '../../../../helpers';
+import { UserComponent } from '../../';
+import { IBase } from '../../../base-model';
 
 export enum ERole {
     Admin = 1,
@@ -149,11 +149,3 @@ export class User implements IBase.ICollection {
         }
     }
 }
-
-
-
-
-
-
-
-
