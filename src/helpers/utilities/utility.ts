@@ -78,7 +78,10 @@ export namespace Utility {
      */
     export function getEnumKeys(value: object): string[] {
         try {
-            return Object.keys(value).filter(x => typeof x === 'string');
+            return Object.keys(value).filter(x => {
+                let isValue: boolean = parseInt(x) >= 0;
+                return !isValue;
+            });
         } catch (error) {
             throw error;
         }
