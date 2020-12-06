@@ -9,9 +9,9 @@ export namespace UserDAL {
      */
     type TOutputR = IBase.MongoData<IModel.IUser>;
 
-    function getCollection<T>(model: IBase.ICollection): Collection<T> {
+    function getCollection<T>(name: string): Collection<T> {
         let db = DbService.db;
-        return db.collection(model.collectionName);
+        return db.collection(name);
     }
 
     /**
@@ -19,7 +19,7 @@ export namespace UserDAL {
      */
     export async function getAllUsers(): Promise<TOutputR[]> {
         try {
-            let collection: Collection<TOutputR> = getCollection<IModel.IUser>(new IModel.User);
+            let collection: Collection<TOutputR> = getCollection<IModel.IUser>(IModel.User.name);
 
             let count: number = await collection.find().count();
             let results: TOutputR[] = await collection
@@ -61,7 +61,7 @@ export namespace UserDAL {
                 })
             }
 
-            let collection = await getCollection<IModel.IUser>(new IModel.User);
+            let collection = await getCollection<IModel.IUser>(IModel.User.name);
             let cursor: Cursor = collection.find(query);
 
             let count: number = await collection.find(query).count();

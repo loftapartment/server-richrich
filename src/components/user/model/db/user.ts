@@ -85,19 +85,14 @@ export interface IUser {
     groupWhoOweIds?: string[];
 }
 
-export class User implements IBase.ICollection {
-    /**
-     * 
-     */
-    public get collectionName(): string {
-        return User.name;
-    }
+type TInput = UserComponent.IModel.IRequest.IUserC | UserComponent.IModel.IRequest.IUserU;
 
+export class User extends IBase.BaseCollection<IUser> {
     /**
-     * 
+     * validate
      * @param input 
      */
-    public async validate(input: UserComponent.IModel.IRequest.IUserC | UserComponent.IModel.IRequest.IUserU): Promise<UserComponent.IModel.IRequest.IUserC | UserComponent.IModel.IRequest.IUserU> {
+    public static async validate(input: TInput): Promise<TInput> {
         try {
             let innerInput = JSON.parse(JSON.stringify(input));
 
@@ -141,7 +136,7 @@ export class User implements IBase.ICollection {
                 excludeId = innerInput.id;
             }
 
-            await Utility.checkRepeat('email', this.collectionName, innerInput, excludeId);
+            await Utility.checkRepeat('email', User.name, innerInput, excludeId);
 
             return innerInput;
         } catch (error) {

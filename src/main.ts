@@ -3,7 +3,7 @@ import './app';
 
 import { app } from './app';
 import { DbService } from './services';
-import { Random, Utility } from './helpers';
+import { Utility } from './helpers';
 
 let port: number = parseInt(process.env.PORT) || 3000;
 

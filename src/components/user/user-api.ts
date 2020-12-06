@@ -12,7 +12,7 @@ UserApi
     .route(`${_API_BASE}/user`)
     .get(
         [
-            Middleware.permission
+            Middleware.permission([])
         ],
         async (req: Request, res: Response) => {
             try {
@@ -30,15 +30,14 @@ UserApi
     .route(`${_API_BASE}/user/sign-up`)
     .post(
         [
-            Middleware.validate(new IModel.User)
+            Middleware.validate(IModel.User.validate)
         ],
         async (req: Request, res: Response) => {
             let _input: IModel.IRequest.IUserC = res['input'];
 
             try {
-                let isGoogle: boolean = !!_input['googleIdToken'];
-                if (isGoogle) {
-
+                if ('googleIdToken' in _input) {
+                    console.log(_input.googleIdToken);
 
                 } else {
 

@@ -11,9 +11,39 @@ export interface IGetOptions<T> {
     notEquals?: Partial<T>;
 }
 
-export interface ICollection {
-    readonly collectionName: string;
-    validate: Function;
+export class BaseCollection<T> {
+    private _id: string = undefined;
+    public get(): string {
+        return this._id;
+    }
+
+    private _data: T = undefined;
+    public get data(): T {
+        return this._data;
+    }
+    public set data(value: T) {
+        this._data = value;
+    }
+
+    constructor(data: T) {
+        this._data = data;
+    }
+
+    /**
+     * save to db
+     */
+    public save() {
+
+    }
+
+    /**
+     * query from db
+     */
+    public query() {
+        if (!this._id) {
+            throw new Error('_id can not empty');
+        }
+    }
 }
 
 import * as IResponse from './response';

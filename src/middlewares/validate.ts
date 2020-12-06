@@ -1,8 +1,7 @@
 import { RequestHandler } from 'express';
 import { Utility } from '../helpers';
-import { IBase } from 'src/components/base-model';
 
-export const validate = (model: IBase.ICollection): RequestHandler => async (req, res, next) => {
+export const validate = (exec: Function): RequestHandler => async (req, res, next) => {
     if (!req.body) {
         return res.status(400).end('body can not empty');
     }
@@ -10,7 +9,7 @@ export const validate = (model: IBase.ICollection): RequestHandler => async (req
     const _input = req.body;
 
     try {
-        res['input'] = await model.validate(_input);
+        res['input'] = await exec(_input);
     } catch (error) {
         return res.status(400).end(Utility.handleError(error));
     }
