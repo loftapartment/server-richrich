@@ -88,6 +88,8 @@ export interface IUser {
 type TInput = UserComponent.IModel.IRequest.IUserC | UserComponent.IModel.IRequest.IUserU;
 
 export class User extends IBase.BaseCollection<IUser> {
+    protected _collectionName: string = User.name;
+
     /**
      * validate
      * @param input 
@@ -96,17 +98,24 @@ export class User extends IBase.BaseCollection<IUser> {
         try {
             let innerInput = JSON.parse(JSON.stringify(input));
 
-            Utility.validateEmpty('email', innerInput, true);
+            Utility.validateRequiredEmpty('email', innerInput);
             if (!Validator.isEmail(innerInput.email)) {
                 throw new Error('email format invalid');
             }
 
-            Utility.validateEmpty('name', input, true);
+            Utility.validateRequiredEmpty('name', input);
 
             if ('gender' in innerInput) {
                 let validateValues: string[] = Utility.getEnumKeys(EGender);
                 if (validateValues.indexOf(innerInput.gender) === -1) {
-                    throw new Error(`gender should be 'male' or 'female'`);
+                    throw new Error(`gender should be ${validateValues.join(', ')}`);
+                }
+            }
+
+            if ('role' in innerInput) {
+                let validateValues: string[] = Utility.getEnumKeys(ERole);
+                if (validateValues.indexOf(innerInput.gender) === -1) {
+                    throw new Error(`role should be ${validateValues.join(', ')}`);
                 }
             }
 
@@ -125,7 +134,7 @@ export class User extends IBase.BaseCollection<IUser> {
             Utility.validateEmpty('imageBase64', innerInput);
 
             if ('googleIdToken' in innerInput) {
-                Utility.validateEmpty('googleIdToken', innerInput, true);
+                Utility.validateRequiredEmpty('googleIdToken', innerInput);
             } else if (!innerInput.password) {
                 throw new Error('googleIdToken and password can not both empty');
             }

@@ -23,21 +23,33 @@ export namespace Utility {
      * @param src 
      */
     export function validateEmpty(key: string, src: any): void
-    export function validateEmpty(key: string, src: any, isRequired: boolean): void
-    export function validateEmpty(key: string, src: any, isRequired?: boolean): void {
+    export function validateEmpty(key: string, src: any): void {
         if (!src) {
             throw new Error('no any value');
         }
 
         if (typeof src === 'object') {
-            if (isRequired) {
+            if (key in src) {
                 if (!src[key]) {
                     throw new Error(`${key} can not empty`);
                 }
-            } else if (key in src) {
-                if (!src[key]) {
-                    throw new Error(`${key} can not empty`);
-                }
+            }
+        }
+    }
+
+    /**
+     * 
+     * @param key 
+     * @param src 
+     */
+    export function validateRequiredEmpty(key: string, src: any): void {
+        if (!src) {
+            throw new Error('no any value');
+        }
+
+        if (typeof src === 'object') {
+            if (!src[key]) {
+                throw new Error(`${key} can not empty`);
             }
         }
     }
