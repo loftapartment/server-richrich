@@ -1,5 +1,6 @@
 export * from './utilities';
-export * from './google-auth';
 
+import GoogleAuthHelper from './google-auth';
 import Validator from 'validator';
-export { Validator };
+export { Validator, GoogleAuthHelper };
+

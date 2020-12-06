@@ -1,4 +1,4 @@
-import { OAuth2Client } from 'google-auth-library';
+import { LoginTicket, OAuth2Client } from 'google-auth-library';
 
 export class GoogleAuthHelper {
     /**
@@ -18,20 +18,14 @@ export class GoogleAuthHelper {
      * 
      * @param token 
      */
-    public async verify(token: string) {
+    public async verify(token: string): Promise<LoginTicket> {
         try {
-            const ticket = await this._client.verifyIdToken({
+            const ticket: LoginTicket = await this._client.verifyIdToken({
                 idToken: token,
                 audience: this._clientId,  // Specify the CLIENT_ID of the app that accesses the backend
-                // Or, if multiple clients access the backend:
-                //[CLIENT_ID_1, CLIENT_ID_2, CLIENT_ID_3]
             });
 
-            const payload = ticket.getPayload();
-
-            const userid = payload['sub'];
-            // If request specified a G Suite domain:
-            // const domain = payload['hd'];
+            return ticket;
         } catch (error) {
             throw error;
         }
