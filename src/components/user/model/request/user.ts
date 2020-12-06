@@ -4,6 +4,7 @@ export interface IUserBaseC {
     email: string;
     name: string;
     gender: keyof typeof IModel.EGender;
+    role?: keyof typeof IModel.ERole;
     groupIds?: string[];
     friendIds?: string[];
     imageBase64?: string;
