@@ -58,7 +58,7 @@ export namespace Utility {
      * removeRebundant
      * @param data
      */
-    export function removeRebundant<T>(data: T[]): T[] {
+    export function removeRebundants<T>(data: T[]): T[] {
         try {
             if (!!data && typeof data !== 'object') {
                 return data;
@@ -69,12 +69,7 @@ export namespace Utility {
                     if (typeof item !== 'object') return item;
                     if (Array.isArray(item)) return item;
 
-                    let keys: string[] = Object.keys(item);
-                    keys.forEach((key) => {
-                        if (isNull(item[key])) delete item[key];
-                    });
-
-                    return item;
+                    return removeRebundant(item);
                 });
             }
 
@@ -82,6 +77,20 @@ export namespace Utility {
         } catch (error) {
             throw error;
         }
+    }
+
+    /**
+     * 
+     * @param item 
+     */
+    export function removeRebundant<T>(item: T): T {
+        let data: T = JSON.parse(JSON.stringify(item));
+        let keys: string[] = Object.keys(data);
+        keys.forEach((key) => {
+            if (isNull(data[key])) delete data[key];
+        });
+
+        return data;
     }
 
     /**
@@ -97,6 +106,15 @@ export namespace Utility {
         } catch (error) {
             throw error;
         }
+    }
+
+    /**
+     * 
+     * @param data 
+     * @param key 
+     */
+    export function isKeyExist(key: string, data: object): boolean {
+        return key in data;
     }
 
     /**
@@ -139,6 +157,17 @@ export namespace Utility {
         } catch (error) {
             throw error;
         }
+    }
+
+    /**
+     * 
+     * @param message 
+     * @param statusCode 
+     */
+    export function getError(message: string, statusCode?: number): Error {
+        let error = new Error(message);
+        error['statusCode'] = statusCode || 500;
+        return error;
     }
 
     /**
