@@ -96,56 +96,68 @@ export class User extends IBase.BaseCollection<IUser> {
      */
     public static async validate(input: TInput): Promise<TInput> {
         try {
-            let innerInput = JSON.parse(JSON.stringify(input));
-
-            Utility.validateRequiredEmpty('email', innerInput);
-            if (!Validator.isEmail(innerInput.email)) {
+            Utility.validateRequiredEmpty('email', input);
+            if (!Validator.isEmail(input.email)) {
                 throw new Error('email format invalid');
             }
 
             Utility.validateRequiredEmpty('name', input);
 
-            if ('gender' in innerInput) {
+            if (Utility.isKeyExist('gender', input)) {
                 let validateValues: string[] = Utility.getEnumKeys(EGender);
-                if (validateValues.indexOf(innerInput.gender) === -1) {
+                if (validateValues.indexOf(input.gender) === -1) {
                     throw new Error(`gender should be ${validateValues.join(', ')}`);
                 }
             }
 
-            if ('role' in innerInput) {
+            if (Utility.isKeyExist('role', input)) {
                 let validateValues: string[] = Utility.getEnumKeys(ERole);
-                if (validateValues.indexOf(innerInput.gender) === -1) {
+                if (validateValues.indexOf(input.gender) === -1) {
                     throw new Error(`role should be ${validateValues.join(', ')}`);
                 }
             }
 
-            if ('groupIds' in innerInput) {
-                if (!Array.isArray(innerInput.groupIds)) {
+            if (Utility.isKeyExist('groupIds', input)) {
+                if (!Array.isArray(input.groupIds)) {
                     throw new Error(`groupIds should be an string array`);
                 }
             }
 
-            if ('friendIds' in innerInput) {
-                if (!Array.isArray(innerInput.groupIds)) {
-                    throw new Error(`groupIds should be an string array`);
+            if (Utility.isKeyExist('friendIds', input)) {
+                if (!Array.isArray(input.groupIds)) {
+                    throw new Error(`friendIds should be an string array`);
                 }
             }
 
-            Utility.validateEmpty('imageBase64', innerInput);
+            Utility.validateEmpty('imageBase64', input);
 
-            if ('googleIdToken' in innerInput) {
-                Utility.validateRequiredEmpty('googleIdToken', innerInput);
-            } else if (!innerInput.password) {
+            if ('googleIdToken' in input) {
+                Utility.validateRequiredEmpty('googleIdToken', input);
+            } else if (!input.password) {
                 throw new Error('googleIdToken and password can not both empty');
             }
 
             /// check repeat
             let excludeId: string = '';
-            if ('id' in innerInput) {
-                excludeId = innerInput.id;
+            if ('id' in input) {
+                excludeId = input.id;
             }
 
-            await Utility.checkRepeat('email', User.name, innerInput, excludeId);
+            await Utility.checkRepeat('email', User.name, input, excludeId);
+
+            return input;
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    /**
+     * parse
+     * @param input 
+     */
+    public static parse(input: TInput): TInput {
+        try {
+            let innerInput = JSON.parse(JSON.stringify(input));
 
             return innerInput;
         } catch (error) {

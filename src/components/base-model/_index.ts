@@ -1,4 +1,4 @@
-import { Collection, ObjectId, OptionalId } from 'mongodb';
+import { Collection, ObjectId } from 'mongodb';
 import { DbService } from '../../../src/services';
 
 export type MongoData<T> = {
@@ -42,9 +42,12 @@ export class BaseCollection<T> {
      */
     public async save(): Promise<void> {
         try {
+            this._data = Utility.removeRebundant(this._data);
+
             // create
             if (!this._id) {
                 this._data._created_at = new Date();
+
 
                 let result = await this.getCollection<T>(this.collectionName).insertOne(this._data as any);
 
@@ -52,7 +55,13 @@ export class BaseCollection<T> {
 
             } else {
                 // update
+                this._data._updated_at = new Date();
 
+                let result = await this.getCollection<T>(this.collectionName).updateOne({
+                    _id: {
+                        $eq: this._data._id as any
+                    }
+                }, { $set: this._data });
             }
 
         } catch (error) {
@@ -63,10 +72,12 @@ export class BaseCollection<T> {
     /**
      * query from db
      */
-    public query() {
+    public async query(): Promise<void> {
         if (!this._id) {
             throw new Error('_id can not empty');
         }
+
+        this._data = await this.getCollection<T>(this.collectionName).findOne({ _id: new ObjectId(this._id) as any });
     }
 
     /**
@@ -116,6 +127,7 @@ export class BaseCollection<T> {
 }
 
 import * as IResponse from './response';
+import { Utility } from '../../../src/helpers';
 
 export { IResponse };
 
