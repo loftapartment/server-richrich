@@ -17,6 +17,10 @@ export namespace Utility {
         return data === null || data === undefined;
     }
 
+    export function isExpired(ms: number): boolean {
+        return Date.now() > ms;
+    }
+
     /**
      * 
      * @param key 
