@@ -1,9 +1,8 @@
 import { IBase } from "../base-model";
 import { IModel } from "./model";
-import { GoogleAuthHelper, Utility } from "../../../src/helpers";
+import { GoogleAuthHelper, Utility, AuthTokenHelper } from "../../../src/helpers";
 import { UserDAL } from "./user-dal";
 
-type InputC = IModel.IRequest.IUserC;
 export namespace UserController {
     /**
      * getAllUsers
@@ -60,61 +59,115 @@ export namespace UserController {
         }
     }
 
-    export async function signUpGoogle(_input: InputC) {
+    type InputC = IModel.IRequest.IUserC;
+    /**
+     * 
+     * @param input 
+     */
+    export async function signUpGoogle(input: InputC): Promise<string> {
         try {
-            if ('googleIdToken' in _input) {
-                await GoogleAuthHelper.verify(_input.googleIdToken);
-    
-                // check whether already sign up
-                let user: IModel.User = new IModel.User();
-                await user.queryByField({
-                    equals: {
-                        email: _input.email
-                    }
-                });
-    
-                if (!user.id) {
-                    /// create
-                    let data: IBase.MongoData<IModel.IUser> = {
-                        name: _input.name,
-                        role: IModel.ERole.User,
-                        email: _input.email,
-                        password: undefined,
-                        googleAuth: true
-                    };
-    
-                    if ('gender' in _input) {
-                        data.gender = IModel.EGender[_input.gender];
-                    }
-    
-                    if ('role' in _input) {
-                        data.role = IModel.ERole[_input.role];
-                    }
-    
-                    if ('groupIds' in _input) {
-                        
-                    }
-    
-                    if ('friendIds' in _input) {
+            if (!('googleIdToken' in input)) {
+                return undefined;
+            }
 
-                    }
-    
-                    if ('imageBase64' in user) {
-    
-                    }
-    
-                    user.data = data;
-    
-                    await user.save();
-                } else {
-                    /// update
-    
+            await GoogleAuthHelper.verify(input.googleIdToken);
+
+            // check whether already sign up
+            let user: IModel.User = new IModel.User();
+            await user.queryByField({
+                equals: {
+                    email: input.email
+                }
+            });
+
+            let isCreate: boolean = !user.id;
+            if (isCreate) {
+                let data: IBase.MongoData<IModel.IUser> = {
+                    name: input.name,
+                    role: IModel.ERole.User,
+                    email: input.email,
+                    password: undefined,
+                    googleAuth: true
+                };
+
+                if ('gender' in input) {
+                    data.gender = IModel.EGender[input.gender];
+                }
+
+                if ('role' in input) {
+                    data.role = IModel.ERole[input.role];
+                }
+
+                if ('groupIds' in input) {
+
+                }
+
+                if ('friendIds' in input) {
+
+                }
+
+                if ('imageBase64' in user) {
+
+                }
+
+                user.data = data;
+            } else {
+                /// update
+                let data = user.data;
+                data.name = input.name;
+                data.googleAuth = true;
+
+                if ('gender' in input) {
+                    data.gender = IModel.EGender[input.gender];
+                }
+
+                if ('role' in input) {
+                    data.role = IModel.ERole[input.role];
+                }
+
+                if ('groupIds' in input) {
+
+                }
+
+                if ('friendIds' in input) {
+
+                }
+
+                if ('imageBase64' in user) {
+
                 }
             }
-    
+
+            await user.save();
+
+            return getToken({
+                id: user.id,
+                name: input.name,
+                email: input.email,
+                role: input.role
+            });
+
         } catch (error) {
             throw Utility.getError(`google: ${error}`);
         }
     }
+
+    export interface IAuthTokenFields {
+        id: string;
+        email: string;
+        name: string;
+        role: string;
+    }
+    function getToken(data: IAuthTokenFields): string {
+        return AuthTokenHelper.encodePayload<IAuthTokenFields>(data);
+    }
+
+    export function setTokenCookie(token: string): void {
+
+    }
+
+
+
+
 
 }
