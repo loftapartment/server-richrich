@@ -138,12 +138,14 @@ export class User extends IBase.BaseCollection<IUser> {
             }
 
             /// check repeat
-            let excludeId: string = '';
-            if ('id' in input) {
-                excludeId = input.id;
-            }
+            if (!('googleIdToken' in input)) {
+                let excludeId: string = '';
+                if ('id' in input) {
+                    excludeId = input.id;
+                }
 
-            await Utility.checkRepeat('email', User.name, input, excludeId);
+                await Utility.checkRepeat('email', User.name, input, excludeId);
+            }
 
             return input;
         } catch (error) {
