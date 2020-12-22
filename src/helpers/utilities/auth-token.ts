@@ -35,7 +35,7 @@ class AuthToken {
      * 
      * @param data 
      */
-    public decodePayload<T>(data: string): T {
+    public decodePayload<T>(data: string): T & AuthToken.IExtendPayload {
         try {
             let datas: string[] = data.split('.');
             if (datas.length !== 2) {
@@ -55,6 +55,15 @@ class AuthToken {
         } catch (error) {
             throw error;
         }
+    }
+}
+
+namespace AuthToken {
+    export interface IExtendPayload {
+        iss: string;
+        sub: string;
+        aud: string;
+        exp: number;
     }
 }
 

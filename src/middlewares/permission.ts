@@ -1,18 +1,28 @@
 import { RequestHandler } from 'express';
 import { UserComponent } from '../components';
-import { AuthTokenHelper } from '../helpers';
+import { AuthTokenHelper, Utility } from '../helpers';
+import { IModel } from '../components/user/model';
 
 export const permission = (roles: UserComponent.IModel.ERole[]): RequestHandler => async (req, res, next) => {
-    // if (!req.headers.authorization) {
-    //     return res.status(401).end('Unauthorized');
-    // }
+    const session: string = req.cookies.session;
+    if (!session) {
+        return res.status(401).end('Unauthorized');
+    }
+
     try {
-        // const token: string = req.headers.authorization.replace('Bearer ', '');
+        let user = AuthTokenHelper.decodePayload<UserComponent.UserController.IAuthTokenFields>(session);
 
-        // let user = AuthTokenHelper.decodePayload<UserComponent.IModel.IUser>(token);
+        if (roles.indexOf(IModel.ERole[user.role]) === -1) {
+            return res.status(403).end('Permission Denied');
+        }
 
+        if (Utility.isExpired(user.exp)) {
+            return res.status(401).end('Session expired');
+        }
+
+        req['user'] = user;
     } catch (error) {
-        return res.status(403).end('Permission Denied');
+        return res.status(401).end('Unauthorized');
     }
 
     next();

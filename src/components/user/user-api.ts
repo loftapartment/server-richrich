@@ -13,7 +13,7 @@ UserApi
     .route(`${_API_BASE}/user`)
     .get(
         [
-            Middleware.permission([IModel.ERole.Admin, IModel.ERole.ProUser, IModel.ERole.User])
+            Middleware.permission([IModel.ERole.Admin])
         ],
         async (req: Request, res: Response) => {
             try {
@@ -36,17 +36,24 @@ UserApi
         ],
         async (req: Request, res: Response) => {
             let _input: InputC = res['input'];
-            console.log('!!', req.cookies.session);
 
             try {
-                let authToken: string = undefined;
+                let user: IModel.User = undefined;
                 /// google auth
                 if ('googleIdToken' in _input) {
-                    authToken = await UserController.signUpGoogle(_input);
+                    user = await UserController.signUpGoogle(_input);
                 } else {
                     /// general
-
+                    user = await UserController.signUp(_input);
                 }
+
+                let data = user.data;
+                let authToken: string = UserController.getToken({
+                    id: user.id,
+                    name: data.name,
+                    email: data.email,
+                    role: IModel.ERole[data.role]
+                });
 
                 res.cookie('session', authToken);
 

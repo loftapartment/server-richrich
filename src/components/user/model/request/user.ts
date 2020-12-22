@@ -3,8 +3,7 @@ import { IModel } from "..";
 export interface IUserBaseC {
     email: string;
     name: string;
-    gender: keyof typeof IModel.EGender;
-    role?: keyof typeof IModel.ERole;
+    gender?: keyof typeof IModel.EGender;
     groupIds?: string[];
     friendIds?: string[];
     imageBase64?: string;

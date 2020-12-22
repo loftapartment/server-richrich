@@ -2,6 +2,7 @@ import { IBase } from "../base-model";
 import { IModel } from "./model";
 import { GoogleAuthHelper, Utility, AuthTokenHelper } from "../../../src/helpers";
 import { UserDAL } from "./user-dal";
+import BCrypt from 'bcrypt';
 
 export namespace UserController {
     /**
@@ -64,7 +65,7 @@ export namespace UserController {
      * 
      * @param input 
      */
-    export async function signUpGoogle(input: InputC): Promise<string> {
+    export async function signUpGoogle(input: InputC): Promise<IModel.User> {
         try {
             if (!('googleIdToken' in input)) {
                 return undefined;
@@ -94,10 +95,6 @@ export namespace UserController {
                     data.gender = IModel.EGender[input.gender];
                 }
 
-                if ('role' in input) {
-                    data.role = IModel.ERole[input.role];
-                }
-
                 if ('groupIds' in input) {
 
                 }
@@ -121,10 +118,6 @@ export namespace UserController {
                     data.gender = IModel.EGender[input.gender];
                 }
 
-                if ('role' in input) {
-                    data.role = IModel.ERole[input.role];
-                }
-
                 if ('groupIds' in input) {
 
                 }
@@ -140,13 +133,55 @@ export namespace UserController {
 
             await user.save();
 
-            return getToken({
-                id: user.id,
-                name: input.name,
-                email: input.email,
-                role: input.role
-            });
+            return user;
+        } catch (error) {
+            throw Utility.getError(`google: ${error}`);
+        }
+    }
 
+    /**
+     * 
+     * @param input 
+     */
+    export async function signUp(input: InputC, role: IModel.ERole = IModel.ERole.User): Promise<IModel.User> {
+        try {
+            if (!('password' in input)) {
+                return undefined;
+            }
+
+            let user: IModel.User = new IModel.User();
+
+            const salt = BCrypt.genSaltSync(10);
+            const hashPassword: string = BCrypt.hashSync(input.password, salt);
+
+            let data: IBase.MongoData<IModel.IUser> = {
+                name: input.name,
+                role: role,
+                email: input.email,
+                password: hashPassword
+            };
+
+            if ('gender' in input) {
+                data.gender = IModel.EGender[input.gender];
+            }
+
+            if ('groupIds' in input) {
+
+            }
+
+            if ('friendIds' in input) {
+
+            }
+
+            if ('imageBase64' in user) {
+
+            }
+
+            user.data = data;
+
+            await user.save();
+
+            return user;
         } catch (error) {
             throw Utility.getError(`google: ${error}`);
         }
@@ -158,7 +193,7 @@ export namespace UserController {
         name: string;
         role: string;
     }
-    function getToken(data: IAuthTokenFields): string {
+    export function getToken(data: IAuthTokenFields): string {
         return AuthTokenHelper.encodePayload<IAuthTokenFields>(data);
     }
 
