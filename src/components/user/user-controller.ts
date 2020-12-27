@@ -73,7 +73,7 @@ export namespace UserController {
     export async function signUpGoogle(input: InputC): Promise<IModel.User> {
         try {
             if (!('googleIdToken' in input)) {
-                return undefined;
+                throw `googleIdToken can not empty`;
             }
 
             // check whether already sign up
@@ -203,7 +203,7 @@ export namespace UserController {
     export async function signUp(input: InputC, role: IModel.ERole = IModel.ERole.User): Promise<IModel.User> {
         try {
             if (!('password' in input)) {
-                return undefined;
+                throw `password can not empty`;
             }
 
             let user: IModel.User = new IModel.User();
@@ -212,7 +212,8 @@ export namespace UserController {
                 name: input.name,
                 role: role,
                 email: input.email,
-                password: getHashPassword(input.password)
+                password: getHashPassword(input.password),
+                googleAuth: false
             };
 
             if ('gender' in input) {
@@ -237,7 +238,7 @@ export namespace UserController {
 
             return user;
         } catch (error) {
-            throw Utility.getError(`google: ${error}`);
+            throw Utility.getError(error);
         }
     }
 
