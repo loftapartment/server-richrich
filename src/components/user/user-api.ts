@@ -1,9 +1,8 @@
 import express, { Request, Response } from 'express';
 import { IModel } from './model';
-import { Utility, AuthTokenHelper } from '../../helpers';
+import { Utility } from '../../helpers';
 import { Middleware } from '../../middlewares';
 import { UserController } from './user-controller';
-import BCrypt from 'bcrypt';
 
 const _API_BASE = process.env.API_BASE;
 
@@ -52,50 +51,16 @@ UserApi
 
             try {
                 let user: IModel.User = new IModel.User();
-                /// google auth
                 if ('googleIdToken' in _input) {
-                    try {
-                        user = await UserController.getUserFromGoogle(_input.googleIdToken);
-                    } catch (error) {
-                        throw Utility.getError(`google: ${error}`, 400);
-                    }
-
-                    if (!user.id) {
-                        throw Utility.getError('user not found', 400);
-                    }
+                    user = await UserController.getUserFromGoogle(_input.googleIdToken);
                 } else if ('session' in _input) {
-                    try {
-                        let payload = AuthTokenHelper.decodePayload<UserController.IAuthTokenFields>(_input.session);
-                        if (Utility.isExpired(payload.exp)) {
-                            res.cookie('session', null, { expires: new Date() });
-                            throw Utility.getError('Session Expired', 401);
-                        }
-
-                        await user.queryByField({
-                            equals: {
-                                email: payload.email
-                            }
-                        });
-                    } catch (error) {
-                        throw Utility.getError(error, 400);
-                    }
+                    user = await UserController.getUserFromSession(_input.session);
                 } else {
-                    /// general
-                    await user.queryByField({
-                        equals: {
-                            email: _input.email
-                        }
-                    })
+                    user = await UserController.getUser(_input);
+                }
 
-                    if (!user.id) {
-                        throw Utility.getError('email or password not correct', 400);
-                    }
-
-                    let password: string = user.data.password;
-                    let isPasswordSame = BCrypt.compareSync(_input.password, password);
-                    if (!isPasswordSame) {
-                        throw Utility.getError('email or password not correct', 400);
-                    }
+                if (!user.id) {
+                    throw Utility.getError('user not found', 400);
                 }
 
                 let data = user.data;
@@ -122,6 +87,7 @@ UserApi
 
                 res.send(Utility.removeRebundant(output));
             } catch (error) {
+                res.cookie('session', null, { expires: new Date() });
                 res.status(error.statusCode || 400).end(error.message);
             }
         });

@@ -2,6 +2,7 @@ import { IBase } from "../base-model";
 import { IModel } from "./model";
 import { GoogleAuthHelper, Utility, AuthTokenHelper } from "../../../src/helpers";
 import { UserDAL } from "./user-dal";
+import { LoginTicket } from "google-auth-library";
 import BCrypt from 'bcrypt';
 
 export namespace UserController {
@@ -76,7 +77,7 @@ export namespace UserController {
             }
 
             // check whether already sign up
-            let user: IModel.User = await getUserFromGoogle(input.googleIdToken);
+            let user: IModel.User = await getUserFromGoogle(input.googleIdToken);;
 
             let isCreate: boolean = !user.id;
             if (isCreate) {
@@ -132,22 +133,65 @@ export namespace UserController {
 
             return user;
         } catch (error) {
-            throw Utility.getError(`google: ${error}`);
+            throw Utility.getError(error, 400);
         }
     }
 
     export async function getUserFromGoogle(token: string): Promise<IModel.User> {
-        let ticket = await GoogleAuthHelper.verify(token);
-
-        let email = ticket.getPayload().email;
+        let ticket: LoginTicket = undefined;
+        let email: string = undefined;
+        try {
+            ticket = await GoogleAuthHelper.verify(token);
+            email = ticket.getPayload().email;
+        } catch (error) {
+            throw Utility.getError(`google: ${error}`, 400);
+        }
 
         // check whether already sign up
         let user: IModel.User = new IModel.User();
         await user.queryByField({
             equals: {
+                googleAuth: true,
                 email: email
             }
         });
+
+        return user;
+    }
+
+    export async function getUserFromSession(session: string): Promise<IModel.User> {
+        let payload = AuthTokenHelper.decodePayload<UserController.IAuthTokenFields>(session);
+        if (Utility.isExpired(payload.exp)) {
+            throw Utility.getError('Session Expired', 401);
+        }
+
+        let user: IModel.User = new IModel.User();
+        await user.queryByField({
+            equals: {
+                email: payload.email
+            }
+        });
+
+        return user;
+    }
+
+    export async function getUser(input: IModel.IRequest.ILoginBasic): Promise<IModel.User> {
+        let user: IModel.User = new IModel.User();
+        await user.queryByField({
+            equals: {
+                email: input.email
+            }
+        })
+
+        if (!user.id) {
+            throw Utility.getError('email or password not correct', 400);
+        }
+
+        let password: string = user.data.password;
+        let isPasswordSame = BCrypt.compareSync(input.password, password);
+        if (!isPasswordSame) {
+            throw Utility.getError('email or password not correct', 400);
+        }
 
         return user;
     }
