@@ -10,7 +10,7 @@ export const validate = (exec: Function): RequestHandler => async (req, res, nex
     try {
         res['input'] = await exec(_input);
     } catch (error) {
-        return res.status(400).end(error.message);
+        return res.status(error.status).end(error.message);
     }
 
     next();

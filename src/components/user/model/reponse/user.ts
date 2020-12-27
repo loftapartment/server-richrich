@@ -8,8 +8,10 @@ export interface IUserR {
     id: string;
     email: IUser['email'];
     name: IUser['name'];
+    gender: string;
     role: string;
     groups: IBase.IResponse.IObject[];
     friends: IBase.IResponse.IObject[];
     imageSrc: string;
+    googleAuth: boolean;
 }

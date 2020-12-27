@@ -13,12 +13,14 @@ class AuthToken {
      */
     public encodePayload<T>(data: T): string {
         try {
+            const nowMs = Date.now();
             let payload = {
                 ...data,
                 iss: this._ISS,
                 sub: this._SUB,
                 aud: this._AUD,
-                exp: Date.now() + parseInt(process.env.AUTH_TOKEN_EXPIRED_SEC) * 1000
+                exp: nowMs + parseInt(process.env.AUTH_TOKEN_EXPIRED_SEC) * 1000,
+                iat: nowMs
             };
 
             // let encodeMsg: Buffer = Crypto.publicEncrypt(PUBLIC_KEY, Buffer.from(JSON.stringify(payload)));

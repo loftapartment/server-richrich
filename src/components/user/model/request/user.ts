@@ -28,3 +28,18 @@ export interface IUserGoogleU extends IUserGoogleC {
 }
 
 export type IUserU = IUserGeneralU | IUserGoogleU;
+
+export interface ILoginBasic {
+    email: string;
+    password: string;
+}
+
+export interface ILoginGoogle {
+    googleIdToken: string;
+}
+
+export interface ILoginSession {
+    session: string;
+}
+
+export type ILogin = ILoginBasic | ILoginGoogle | ILoginSession;

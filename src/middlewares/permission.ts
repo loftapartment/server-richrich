@@ -17,7 +17,8 @@ export const permission = (roles: UserComponent.IModel.ERole[]): RequestHandler 
         }
 
         if (Utility.isExpired(user.exp)) {
-            return res.status(401).end('Session expired');
+            res.cookie('session', null, { expires: new Date() })
+            return res.status(401).end('Session Expired');
         }
 
         req['user'] = user;

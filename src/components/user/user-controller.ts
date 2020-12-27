@@ -21,10 +21,12 @@ export namespace UserController {
                     id: user._id.toHexString(),
                     email: user.email,
                     name: user.name,
+                    gender: IModel.EGender[user.gender],
                     imageSrc: user.imageSrc,
                     role: IModel.ERole[user.role],
                     friends,
-                    groups
+                    groups,
+                    googleAuth: user.googleAuth
                 }
             }));
         } catch (error) {
@@ -49,10 +51,12 @@ export namespace UserController {
                     id: user._id.toHexString(),
                     email: user.email,
                     name: user.name,
+                    gender: IModel.EGender[user.gender],
                     imageSrc: user.imageSrc,
                     role: IModel.ERole[user.role],
                     friends,
-                    groups
+                    groups,
+                    googleAuth: user.googleAuth
                 }
             }));
         } catch (error) {
@@ -71,15 +75,8 @@ export namespace UserController {
                 return undefined;
             }
 
-            await GoogleAuthHelper.verify(input.googleIdToken);
-
             // check whether already sign up
-            let user: IModel.User = new IModel.User();
-            await user.queryByField({
-                equals: {
-                    email: input.email
-                }
-            });
+            let user: IModel.User = await getUserFromGoogle(input.googleIdToken);
 
             let isCreate: boolean = !user.id;
             if (isCreate) {
@@ -139,6 +136,22 @@ export namespace UserController {
         }
     }
 
+    export async function getUserFromGoogle(token: string): Promise<IModel.User> {
+        let ticket = await GoogleAuthHelper.verify(token);
+
+        let email = ticket.getPayload().email;
+
+        // check whether already sign up
+        let user: IModel.User = new IModel.User();
+        await user.queryByField({
+            equals: {
+                email: email
+            }
+        });
+
+        return user;
+    }
+
     /**
      * 
      * @param input 
@@ -151,14 +164,11 @@ export namespace UserController {
 
             let user: IModel.User = new IModel.User();
 
-            const salt = BCrypt.genSaltSync(10);
-            const hashPassword: string = BCrypt.hashSync(input.password, salt);
-
             let data: IBase.MongoData<IModel.IUser> = {
                 name: input.name,
                 role: role,
                 email: input.email,
-                password: hashPassword
+                password: getHashPassword(input.password)
             };
 
             if ('gender' in input) {
@@ -185,6 +195,11 @@ export namespace UserController {
         } catch (error) {
             throw Utility.getError(`google: ${error}`);
         }
+    }
+
+    function getHashPassword(password: string): string {
+        const salt = BCrypt.genSaltSync(10);
+        return BCrypt.hashSync(password, salt);
     }
 
     export interface IAuthTokenFields {
