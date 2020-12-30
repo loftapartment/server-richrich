@@ -95,6 +95,7 @@ export interface IUser {
 
 type TInput = UserComponent.IModel.IRequest.IUserC;
 type TInputProfile = UserComponent.IModel.IRequest.IUserProfile;
+type TInputPassword = UserComponent.IModel.IRequest.IChangePassword;
 export class User extends IBase.BaseCollection<IUser> {
     protected _collectionName: string = User.name;
 
@@ -190,6 +191,13 @@ export class User extends IBase.BaseCollection<IUser> {
         }
 
         Utility.validateEmpty('imageBase64', input);
+
+        return input;
+    }
+
+    public static async validatePassword(input: TInputPassword): Promise<TInputPassword> {
+        Utility.validateRequiredEmpty('previous', input);
+        Utility.validateRequiredEmpty('current', input);
 
         return input;
     }

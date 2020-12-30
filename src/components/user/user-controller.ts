@@ -207,8 +207,7 @@ export namespace UserController {
         }
 
         let password: string = user.data.password;
-        let isPasswordSame = BCrypt.compareSync(input.password, password);
-        if (!isPasswordSame) {
+        if (!isPasswordSame(input.password, password)) {
             throw Utility.getError('email or password not correct', 400);
         }
 
@@ -323,6 +322,36 @@ export namespace UserController {
         } catch (error) {
             throw error;
         }
+    }
+
+    export type InputPassword = IModel.IRequest.IChangePassword & { id: string };
+    export async function changePassword(input: InputPassword): Promise<IModel.User> {
+        let user: IModel.User = new IModel.User(input.id);
+        await user.query();
+
+        if (!user.id) {
+            throw 'user not found';
+        }
+
+        // check previous password is same
+        let password: string = user.data.password;
+        if (!isPasswordSame(input.previous, password)) {
+            throw 'previous password not the same';
+        }
+
+        let data = user.data;
+
+        data.password = getHashPassword(input.current);
+
+        data.tokenValidStartDate = new Date();
+
+        await user.save();
+
+        return user;
+    }
+
+    function isPasswordSame(password1: string, password2: string): boolean {
+        return BCrypt.compareSync(password1, password2);
     }
 
 

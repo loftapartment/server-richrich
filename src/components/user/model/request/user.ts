@@ -43,3 +43,8 @@ export interface ILoginSession {
 }
 
 export type ILogin = ILoginBasic | ILoginGoogle | ILoginSession;
+
+export interface IChangePassword {
+    previous: string;
+    current: string;
+}
