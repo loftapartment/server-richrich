@@ -105,11 +105,10 @@ UserApi
 
             try {
                 let user: IModel.User = undefined;
-                /// google auth
+
                 if ('googleIdToken' in _input) {
                     user = await UserController.signUpGoogle(_input);
                 } else {
-                    /// general
                     user = await UserController.signUp(_input);
                 }
 
@@ -141,6 +140,18 @@ UserApi
             }
         });
 
+
+UserApi
+    .route(`${_API_BASE}/user/logout`)
+    .post(
+        async (req: Request, res: Response) => {
+            try {
+                res.cookie('session', null, { expires: new Date() });
+                return res.send(new Date());
+            } catch (error) {
+                res.status(error.statusCode || 400).end(error.message);
+            }
+        });
 
 
 
