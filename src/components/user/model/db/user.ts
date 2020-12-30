@@ -83,6 +83,12 @@ export interface IUser {
      *
      */
     groupWhoOweIds?: string[];
+
+    /**
+     * tokenValidDate
+     * @description token create date should be later than this, or it is invalid
+     */
+    tokenValidStartDate?: Date;
 }
 
 type TInput = UserComponent.IModel.IRequest.IUserC | UserComponent.IModel.IRequest.IUserU;
@@ -133,7 +139,7 @@ export class User extends IBase.BaseCollection<IUser> {
 
             if ('googleIdToken' in input) {
                 Utility.validateRequiredEmpty('googleIdToken', input);
-            } else if (!input.password) {
+            } else if (!('id' in input) && !input.password) {
                 throw new Error('googleIdToken and password can not both empty');
             }
 

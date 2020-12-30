@@ -19,15 +19,9 @@ export interface IUserGoogleC extends IUserBaseC {
 
 export type IUserC = IUserGeneralC | IUserGoogleC;
 
-export interface IUserGeneralU extends IUserGeneralC {
+export interface IUserU extends IUserBaseC {
     id: string;
 }
-
-export interface IUserGoogleU extends IUserGoogleC {
-    id: string;
-}
-
-export type IUserU = IUserGeneralU | IUserGoogleU;
 
 export interface ILoginBasic {
     email: string;

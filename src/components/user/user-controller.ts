@@ -77,16 +77,17 @@ export namespace UserController {
             }
 
             // check whether already sign up
-            let user: IModel.User = await getUserFromGoogle(input.googleIdToken);;
+            let user: IModel.User = await getUserFromGoogle(input.googleIdToken);
+            let data: IBase.MongoData<IModel.IUser> = undefined;
 
             let isCreate: boolean = !user.id;
             if (isCreate) {
-                let data: IBase.MongoData<IModel.IUser> = {
+                data = {
                     name: input.name,
                     role: IModel.ERole.User,
                     email: input.email,
                     password: undefined,
-                    googleAuth: true
+                    googleAuth: true,
                 };
 
                 if ('gender' in input) {
@@ -108,7 +109,7 @@ export namespace UserController {
                 user.data = data;
             } else {
                 /// update
-                let data = user.data;
+                data = user.data;
                 data.name = input.name;
                 data.googleAuth = true;
 
@@ -128,6 +129,8 @@ export namespace UserController {
 
                 }
             }
+
+            data.tokenValidStartDate = new Date();
 
             await user.save();
 
@@ -213,7 +216,8 @@ export namespace UserController {
                 role: role,
                 email: input.email,
                 password: getHashPassword(input.password),
-                googleAuth: false
+                googleAuth: false,
+                tokenValidStartDate: new Date()
             };
 
             if ('gender' in input) {
