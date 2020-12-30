@@ -71,7 +71,7 @@ UserApi
                     role: IModel.ERole[data.role]
                 });
 
-                res.cookie('session', authToken);
+                UserController.setTokenCookie(res, authToken);
 
                 output = {
                     id: data._id.toHexString(),
@@ -87,7 +87,7 @@ UserApi
 
                 res.send(Utility.removeRebundant(output));
             } catch (error) {
-                res.cookie('session', null, { expires: new Date() });
+                UserController.setTokenCookieExpired(res);
                 res.status(error.statusCode || 400).end(error.message);
             }
         });
@@ -120,7 +120,7 @@ UserApi
                     role: IModel.ERole[data.role]
                 });
 
-                res.cookie('session', authToken, { httpOnly: false });
+                UserController.setTokenCookie(res, authToken);
 
                 output = {
                     id: data._id.toHexString(),
@@ -146,7 +146,7 @@ UserApi
     .post(
         async (req: Request, res: Response) => {
             try {
-                res.cookie('session', null, { expires: new Date() });
+                UserController.setTokenCookieExpired(res);
                 return res.send(new Date());
             } catch (error) {
                 res.status(error.statusCode || 400).end(error.message);

@@ -4,6 +4,7 @@ import { GoogleAuthHelper, Utility, AuthTokenHelper } from "../../../src/helpers
 import { UserDAL } from "./user-dal";
 import { LoginTicket } from "google-auth-library";
 import BCrypt from 'bcrypt';
+import { Response } from 'express';
 
 export namespace UserController {
     /**
@@ -261,8 +262,12 @@ export namespace UserController {
         return AuthTokenHelper.encodePayload<IAuthTokenFields>(data);
     }
 
-    export function setTokenCookie(token: string): void {
+    export function setTokenCookie(res: Response, token: string): void {
+        res.cookie('session', token, { httpOnly: true });
+    }
 
+    export function setTokenCookieExpired(res: Response): void {
+        res.cookie('session', null, { expires: new Date() });
     }
 
 
