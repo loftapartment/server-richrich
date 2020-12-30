@@ -1,5 +1,5 @@
 import { IBase } from '../base-model';
-import { DbService } from '../../services'
+import { DbService } from '../../services/db';
 import { Collection, FilterQuery, Cursor } from 'mongodb';
 import { IModel } from './model';
 

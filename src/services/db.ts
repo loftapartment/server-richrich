@@ -1,4 +1,5 @@
 import { MongoClient, Db } from 'mongodb';
+import { BehaviorSubject } from 'rxjs';
 
 const ip: string = process.env.DB_IP;
 const port: number = parseInt(process.env.DB_PORT);
@@ -7,6 +8,14 @@ const password: string = process.env.DB_PASSWORD;
 const dbName: string = process.env.DB_NAME;
 
 class Service {
+    /**
+     * 
+     */
+    private _ready$: BehaviorSubject<boolean> = new BehaviorSubject(false);
+    public get ready$(): BehaviorSubject<boolean> {
+        return this._ready$;
+    }
+
     /**
      *
      */
@@ -45,6 +54,8 @@ class Service {
             await client.connect();
 
             this._db = client.db(dbName);
+
+            this.ready$.next(true);
         } catch (error) {
             throw error;
         }

@@ -1,6 +1,8 @@
 import { Utility, Validator } from '../../../../helpers';
 import { UserComponent } from '../../';
 import { IBase } from '../../../base-model';
+import { Subject, Observable } from 'rxjs';
+import { filter } from 'rxjs/operators';
 
 export enum ERole {
     Admin = 1,
@@ -95,6 +97,10 @@ type TInput = UserComponent.IModel.IRequest.IUserC | UserComponent.IModel.IReque
 
 export class User extends IBase.BaseCollection<IUser> {
     protected _collectionName: string = User.name;
+
+    public static get notice$(): Observable<IBase.TNotice<IUser>> {
+        return super._notice$.pipe(filter(x => x.name === User.name));
+    }
 
     /**
      * validate

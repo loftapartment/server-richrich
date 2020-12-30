@@ -1,4 +1,4 @@
-import { DbService } from "../../services";
+import { DbService } from "../../services/db";
 
 export namespace Utility {
     /**
@@ -15,10 +15,6 @@ export namespace Utility {
      */
     export function isNull(data: any): boolean {
         return data === null || data === undefined;
-    }
-
-    export function isExpired(ms: number): boolean {
-        return Date.now() > ms;
     }
 
     /**
@@ -188,5 +184,13 @@ export namespace Utility {
         }
 
         return JSON.stringify(error);
+    }
+
+    export async function delay(ms: number): Promise<void> {
+        await new Promise((resolve) => {
+            setTimeout(() => {
+                resolve();
+            }, ms);
+        });
     }
 }

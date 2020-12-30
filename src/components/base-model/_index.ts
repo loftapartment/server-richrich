@@ -1,5 +1,13 @@
 import { Collection, ObjectId } from 'mongodb';
-import { DbService } from '../../../src/services';
+import { DbService } from '../../../src/services/db';
+import * as IResponse from './response';
+export { IResponse };
+import { Utility } from '../../../src/helpers';
+import { Subject, Observable } from 'rxjs';
+
+export interface IKeyValueObject<T> {
+    [x: string]: T;
+}
 
 export type MongoData<T> = {
     _id?: ObjectId;
@@ -12,6 +20,21 @@ export interface IGetOptions<T> {
     notEquals?: Partial<T>;
 }
 
+export interface INoticeCD<T> {
+    name: string;
+    method: 'c' | 'd';
+    data: T;
+}
+
+export interface INoticeU<T> {
+    name: string;
+    method: 'u';
+    prevData: T;
+    data: T;
+}
+
+export type TNotice<T> = INoticeCD<T> | INoticeU<T>;
+
 export class BaseCollection<T> {
     protected _id: string = undefined;
     public get id(): string {
@@ -23,6 +46,11 @@ export class BaseCollection<T> {
         return this._collectionName;
     }
 
+    protected static _notice$: Subject<TNotice<any>> = new Subject();
+    public static get notice$(): Observable<TNotice<any>> {
+        return this._notice$;
+    }
+
     private _data: MongoData<T> = undefined;
     public get data(): MongoData<T> {
         return this._data;
@@ -30,6 +58,8 @@ export class BaseCollection<T> {
     public set data(value: MongoData<T>) {
         this._data = value;
     }
+
+    private _innateData: MongoData<T> = undefined;
 
     constructor()
     constructor(id: string)
@@ -53,6 +83,11 @@ export class BaseCollection<T> {
 
                 this._id = result.insertedId.toHexString();
 
+                BaseCollection._notice$.next({
+                    name: this.collectionName,
+                    method: 'c',
+                    data: JSON.parse(JSON.stringify(this.data))
+                });
             } else {
                 // update
                 this._data._updated_at = new Date();
@@ -62,7 +97,16 @@ export class BaseCollection<T> {
                         $eq: this._data._id as any
                     }
                 }, { $set: this._data });
+
+                BaseCollection._notice$.next({
+                    name: this.collectionName,
+                    method: 'u',
+                    prevData: this._innateData,
+                    data: this._data
+                });
             }
+
+            this.setData(this._data);
 
         } catch (error) {
             throw error;
@@ -77,7 +121,8 @@ export class BaseCollection<T> {
             throw new Error('_id can not empty');
         }
 
-        this._data = await this.getCollection<T>(this.collectionName).findOne({ _id: new ObjectId(this._id) as any });
+        let result = await this.getCollection<T>(this.collectionName).findOne({ _id: new ObjectId(this._id) as any });
+        this.setData(result);
     }
 
     /**
@@ -106,7 +151,7 @@ export class BaseCollection<T> {
             let result: MongoData<T> = await this.getCollection<T>(this.collectionName).findOne(query);
 
             if (!!result) {
-                this.data = result;
+                this.setData(result);
 
                 this._id = result._id.toHexString();
             }
@@ -114,6 +159,16 @@ export class BaseCollection<T> {
         } catch (error) {
             throw error;
         }
+    }
+
+    public async destroy(): Promise<void> {
+        let result = await this.getCollection<T>(this.collectionName).deleteOne({ _id: new ObjectId(this._id) as any });
+
+        BaseCollection._notice$.next({
+            name: this.collectionName,
+            method: 'd',
+            data: this._data
+        });
     }
 
     /**
@@ -124,10 +179,10 @@ export class BaseCollection<T> {
         let db = DbService.db;
         return db.collection(name);
     }
+
+    private setData(input: MongoData<T>) {
+        this._data = input;
+        this._innateData = JSON.parse(JSON.stringify(input));
+    }
 }
-
-import * as IResponse from './response';
-import { Utility } from '../../../src/helpers';
-
-export { IResponse };
 

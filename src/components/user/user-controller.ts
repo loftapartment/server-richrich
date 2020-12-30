@@ -1,6 +1,6 @@
 import { IBase } from "../base-model";
 import { IModel } from "./model";
-import { GoogleAuthHelper, Utility, AuthTokenHelper } from "../../../src/helpers";
+import { GoogleAuthHelper, Utility, AuthTokenHelper, DateService } from "../../../src/helpers";
 import { UserDAL } from "./user-dal";
 import { LoginTicket } from "google-auth-library";
 import BCrypt from 'bcrypt';
@@ -31,6 +31,21 @@ export namespace UserController {
                     googleAuth: user.googleAuth
                 }
             }));
+        } catch (error) {
+            throw error;
+        }
+    }
+
+    export async function getAllUserTokenExpiredDate(): Promise<IModel.IResponse.IUserTokenExpiredDate[]> {
+        try {
+            let users: IBase.MongoData<IModel.IUser>[] = await UserDAL.getAllUsers();
+
+            return users.map((user) => {
+                return {
+                    id: user._id.toHexString(),
+                    tokenValidStartDate: new Date(user.tokenValidStartDate)
+                }
+            });
         } catch (error) {
             throw error;
         }
@@ -165,7 +180,7 @@ export namespace UserController {
 
     export async function getUserFromSession(session: string): Promise<IModel.User> {
         let payload = AuthTokenHelper.decodePayload<UserController.IAuthTokenFields>(session);
-        if (Utility.isExpired(payload.exp)) {
+        if (DateService.isExpiredMs(payload.exp)) {
             throw Utility.getError('Session Expired', 401);
         }
 

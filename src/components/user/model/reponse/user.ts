@@ -15,3 +15,8 @@ export interface IUserR {
     imageSrc: string;
     googleAuth: boolean;
 }
+
+export interface IUserTokenExpiredDate {
+    id: string;
+    tokenValidStartDate: Date;
+}
