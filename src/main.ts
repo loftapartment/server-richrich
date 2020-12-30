@@ -30,7 +30,7 @@ let port: number = parseInt(process.env.PORT) || 3000;
                 let user = new UserComponent.IModel.User();
                 await user.queryByField({
                     equals: {
-                        name: 'Admin'
+                        email: 'admin@richrich.com'
                     }
                 });
                 if (!user.id) {

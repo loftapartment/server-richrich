@@ -1,9 +1,11 @@
 import { IModel } from "..";
 
+export type TGender = keyof typeof IModel.EGender;
+
 export interface IUserBaseC {
     email: string;
     name: string;
-    gender?: keyof typeof IModel.EGender;
+    gender?: TGender;
     groupIds?: string[];
     friendIds?: string[];
     imageBase64?: string;
@@ -19,8 +21,12 @@ export interface IUserGoogleC extends IUserBaseC {
 
 export type IUserC = IUserGeneralC | IUserGoogleC;
 
-export interface IUserU extends IUserBaseC {
-    id: string;
+export interface IUserProfile {
+    name: string;
+    gender?: TGender;
+    groupIds?: string[];
+    friendIds?: string[];
+    imageBase64?: string;
 }
 
 export interface ILoginBasic {

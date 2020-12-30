@@ -285,6 +285,45 @@ export namespace UserController {
         res.cookie('session', null, { expires: new Date() });
     }
 
+    export type InputProfile = IModel.IRequest.IUserProfile & { id: string };
+    export async function updateProfile(input: InputProfile): Promise<IModel.User> {
+        try {
+            let user: IModel.User = new IModel.User(input.id);
+            await user.query();
+
+            let data = user.data;
+
+            if (!user.id) {
+                throw 'user not found';
+            }
+
+            data.name = input.name;
+
+            if ('gender' in input) {
+                data.gender = IModel.EGender[input.gender];
+            }
+
+            if ('groupIds' in input) {
+
+            }
+
+            if ('friendIds' in input) {
+
+            }
+
+            if ('imageBase64' in user) {
+
+            }
+
+            user.data = data;
+
+            await user.save(false);
+
+            return user;
+        } catch (error) {
+            throw error;
+        }
+    }
 
 
 

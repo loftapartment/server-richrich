@@ -36,6 +36,7 @@ export interface INoticeU<T> {
 export type TNotice<T> = INoticeCD<T> | INoticeU<T>;
 
 export class BaseCollection<T> {
+
     protected _id: string = undefined;
     public get id(): string {
         return this._id;
@@ -70,7 +71,9 @@ export class BaseCollection<T> {
     /**
      * save to db
      */
-    public async save(): Promise<void> {
+    public async save(needNotice?: boolean): Promise<void> {
+        needNotice = Utility.isNull(needNotice) ? true : needNotice;
+
         try {
             this._data = Utility.removeRebundant(this._data);
 
@@ -78,32 +81,38 @@ export class BaseCollection<T> {
             if (!this._id) {
                 this._data._created_at = new Date();
 
-
                 let result = await this.getCollection<T>(this.collectionName).insertOne(this._data as any);
 
                 this._id = result.insertedId.toHexString();
 
-                BaseCollection._notice$.next({
-                    name: this.collectionName,
-                    method: 'c',
-                    data: JSON.parse(JSON.stringify(this.data))
-                });
+                if (needNotice) {
+                    BaseCollection._notice$.next({
+                        name: this.collectionName,
+                        method: 'c',
+                        data: JSON.parse(JSON.stringify(this.data))
+                    });
+                }
             } else {
-                // update
                 this._data._updated_at = new Date();
+
+                let setData = { ...this._data };
+                delete setData._id;
 
                 let result = await this.getCollection<T>(this.collectionName).updateOne({
                     _id: {
-                        $eq: this._data._id as any
+                        $eq: new ObjectId(this._data._id) as any
                     }
-                }, { $set: this._data });
+                }, { $set: setData });
 
-                BaseCollection._notice$.next({
-                    name: this.collectionName,
-                    method: 'u',
-                    prevData: this._innateData,
-                    data: this._data
-                });
+                if (needNotice) {
+                    BaseCollection._notice$.next({
+                        name: this.collectionName,
+                        method: 'u',
+                        prevData: this._innateData,
+                        data: this._data
+                    });
+
+                }
             }
 
             this.setData(this._data);
@@ -122,6 +131,7 @@ export class BaseCollection<T> {
         }
 
         let result = await this.getCollection<T>(this.collectionName).findOne({ _id: new ObjectId(this._id) as any });
+
         this.setData(result);
     }
 

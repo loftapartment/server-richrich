@@ -92,6 +92,18 @@ UserApi
             }
         });
 
+UserApi
+    .route(`${_API_BASE}/user/logout`)
+    .post(
+        async (req: Request, res: Response) => {
+            try {
+                UserController.setTokenCookieExpired(res);
+                return res.send(new Date());
+            } catch (error) {
+                res.status(error.statusCode || 400).end(error.message);
+            }
+        });
+
 type InputC = IModel.IRequest.IUserC;
 UserApi
     .route(`${_API_BASE}/user/sign-up`)
@@ -140,18 +152,56 @@ UserApi
             }
         });
 
-
+type InputProfile = UserController.InputProfile;
 UserApi
-    .route(`${_API_BASE}/user/logout`)
-    .post(
+    .route(`${_API_BASE}/user/info`)
+    .put(
+        [
+            Middleware.permission(),
+            Middleware.validate(IModel.User.validateProfile),
+        ],
         async (req: Request, res: Response) => {
+            let _input: InputProfile = res['input'];
+            let output: OutputLogin = undefined;
+
+            _input.id = req['user'].id;
             try {
-                UserController.setTokenCookieExpired(res);
-                return res.send(new Date());
+                let user: IModel.User = undefined;
+                try {
+                    user = await UserController.updateProfile(_input);
+                } catch (error) {
+                    throw Utility.getError(error, 400);
+                }
+
+                let data = user.data;
+
+                let authToken: string = UserController.getToken({
+                    id: user.id,
+                    name: data.name,
+                    email: data.email,
+                    role: IModel.ERole[data.role]
+                });
+
+                UserController.setTokenCookie(res, authToken);
+
+                output = {
+                    id: user.id,
+                    email: data.email,
+                    name: data.name,
+                    gender: IModel.EGender[data.gender],
+                    friends: [],
+                    groups: [],
+                    googleAuth: data.googleAuth,
+                    imageSrc: data.imageSrc,
+                    role: IModel.ERole[data.role]
+                }
+
+                res.send(Utility.removeRebundant(output));
             } catch (error) {
                 res.status(error.statusCode || 400).end(error.message);
             }
         });
+
 
 
 

@@ -93,8 +93,8 @@ export interface IUser {
     tokenValidStartDate?: Date;
 }
 
-type TInput = UserComponent.IModel.IRequest.IUserC | UserComponent.IModel.IRequest.IUserU;
-
+type TInput = UserComponent.IModel.IRequest.IUserC;
+type TInputProfile = UserComponent.IModel.IRequest.IUserProfile;
 export class User extends IBase.BaseCollection<IUser> {
     protected _collectionName: string = User.name;
 
@@ -145,24 +145,53 @@ export class User extends IBase.BaseCollection<IUser> {
 
             if ('googleIdToken' in input) {
                 Utility.validateRequiredEmpty('googleIdToken', input);
-            } else if (!('id' in input) && !input.password) {
+            } else if (!input.password) {
                 throw new Error('googleIdToken and password can not both empty');
             }
 
             /// check repeat
             if (!('googleIdToken' in input)) {
-                let excludeId: string = '';
-                if ('id' in input) {
-                    excludeId = input.id;
-                }
-
-                await Utility.checkRepeat('email', User.name, input, excludeId);
+                await Utility.checkRepeat('email', User.name, input);
             }
 
             return input;
         } catch (error) {
             throw error;
         }
+    }
+
+    public static async validateProfile(input: TInputProfile): Promise<TInputProfile> {
+        Utility.validateRequiredEmpty('name', input);
+
+        if (Utility.isKeyExist('gender', input)) {
+            let validateValues: string[] = Utility.getEnumKeys(EGender);
+            if (validateValues.indexOf(input.gender) === -1) {
+                throw new Error(`gender should be ${validateValues.join(', ')}`);
+            }
+        }
+
+        if (Utility.isKeyExist('role', input)) {
+            let validateValues: string[] = Utility.getEnumKeys(ERole);
+            if (validateValues.indexOf(input.gender) === -1) {
+                throw new Error(`role should be ${validateValues.join(', ')}`);
+            }
+        }
+
+        if (Utility.isKeyExist('groupIds', input)) {
+            if (!Array.isArray(input.groupIds)) {
+                throw new Error(`groupIds should be an string array`);
+            }
+        }
+
+        if (Utility.isKeyExist('friendIds', input)) {
+            if (!Array.isArray(input.groupIds)) {
+                throw new Error(`friendIds should be an string array`);
+            }
+        }
+
+        Utility.validateEmpty('imageBase64', input);
+
+        return input;
     }
 
     /**
