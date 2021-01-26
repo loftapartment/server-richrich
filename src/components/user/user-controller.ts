@@ -353,8 +353,4 @@ export namespace UserController {
     function isPasswordSame(password1: string, password2: string): boolean {
         return BCrypt.compareSync(password1, password2);
     }
-
-
-
-
 }
