@@ -5,7 +5,7 @@ import { IModel } from './model';
 
 export namespace UserDAL {
     /**
-     * 
+     *
      */
     type TOutputR = IBase.MongoData<IModel.IUser>;
 
@@ -22,10 +22,7 @@ export namespace UserDAL {
             let collection: Collection<TOutputR> = getCollection<IModel.IUser>(IModel.User.name);
 
             let count: number = await collection.find().count();
-            let results: TOutputR[] = await collection
-                .find()
-                .limit(count)
-                .toArray();
+            let results: TOutputR[] = await collection.find().limit(count).toArray();
 
             return results;
         } catch (error) {
@@ -34,40 +31,23 @@ export namespace UserDAL {
     }
 
     /**
-     * 
+     *
      */
-    export async function getUsers(): Promise<TOutputR[]>
-    export async function getUsers(options: IBase.IGetOptions<IModel.IUser>): Promise<TOutputR[]>
-    export async function getUsers(options?: IBase.IGetOptions<IModel.IUser>): Promise<TOutputR[]> {
+    export async function getUsers(): Promise<TOutputR[]>;
+    export async function getUsers(options: FilterQuery<TOutputR>): Promise<TOutputR[]>;
+    export async function getUsers(options?: FilterQuery<TOutputR>): Promise<TOutputR[]> {
         try {
             if (!options) {
                 return getAllUsers();
             }
 
-            let query: FilterQuery<IBase.MongoData<IModel.IUser>> = {};
-            if (options.equals) {
-                Object.keys(options.equals).forEach((key) => {
-                    query[`${key}`] = {
-                        $eq: options.equals[key]
-                    }
-                })
-            }
-
-            if (options.notEquals) {
-                Object.keys(options.equals).forEach((key) => {
-                    query[`${key}`] = {
-                        $ne: options.notEquals[key]
-                    }
-                })
-            }
+            let query: FilterQuery<TOutputR> = options;
 
             let collection = await getCollection<IModel.IUser>(IModel.User.name);
             let cursor: Cursor = collection.find(query);
 
             let count: number = await collection.find(query).count();
-            let results: TOutputR[] = await cursor
-                .limit(count)
-                .toArray();
+            let results: TOutputR[] = await cursor.limit(count).toArray();
 
             return results;
         } catch (error) {
@@ -76,9 +56,7 @@ export namespace UserDAL {
     }
 
     /**
-     * 
+     *
      */
-    export async function signUpWithGoogle() {
-
-    }
+    export async function signUpWithGoogle() {}
 }

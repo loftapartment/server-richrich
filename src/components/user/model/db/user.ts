@@ -20,12 +20,12 @@ export interface IUser {
      * email
      * @unique
      * @description use email as account
-    */
+     */
     email: string;
 
     /**
      *
-    */
+     */
     password: string;
 
     /**
@@ -34,7 +34,7 @@ export interface IUser {
     name: string;
 
     /**
-     * 
+     *
      */
     gender?: EGender;
 
@@ -100,12 +100,12 @@ export class User extends IBase.BaseCollection<IUser> {
     protected _collectionName: string = User.name;
 
     public static get notice$(): Observable<IBase.TNotice<IUser>> {
-        return super._notice$.pipe(filter(x => x.name === User.name));
+        return super._notice$.pipe(filter((x) => x.name === User.name));
     }
 
     /**
      * validate
-     * @param input 
+     * @param input
      */
     public static async validate(input: TInput): Promise<TInput> {
         try {
@@ -185,7 +185,7 @@ export class User extends IBase.BaseCollection<IUser> {
         }
 
         if (Utility.isKeyExist('friendIds', input)) {
-            if (!Array.isArray(input.groupIds)) {
+            if (!Array.isArray(input.friendIds)) {
                 throw new Error(`friendIds should be an string array`);
             }
         }
@@ -204,7 +204,7 @@ export class User extends IBase.BaseCollection<IUser> {
 
     /**
      * parse
-     * @param input 
+     * @param input
      */
     public static parse(input: TInput): TInput {
         try {

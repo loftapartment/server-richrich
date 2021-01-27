@@ -1,10 +1,11 @@
-import { IBase } from "../base-model";
-import { IModel } from "./model";
-import { GoogleAuthHelper, Utility, AuthTokenHelper, DateService } from "../../../src/helpers";
-import { UserDAL } from "./user-dal";
-import { LoginTicket } from "google-auth-library";
+import { IBase } from '../base-model';
+import { IModel } from './model';
+import { GoogleAuthHelper, Utility, AuthTokenHelper, DateService } from '../../../src/helpers';
+import { UserDAL } from './user-dal';
+import { LoginTicket } from 'google-auth-library';
 import BCrypt from 'bcrypt';
 import { Response } from 'express';
+import { ObjectId } from 'mongodb';
 
 export namespace UserController {
     /**
@@ -14,37 +15,41 @@ export namespace UserController {
         try {
             let users: IBase.MongoData<IModel.IUser>[] = await UserDAL.getAllUsers();
 
-            return await Promise.all(users.map(async (user) => {
-                let friends: IBase.IResponse.IObject[] = [];
+            return await Promise.all(
+                users.map(async (user) => {
+                    let friends: IBase.IResponse.IObject[] = [];
 
-                let groups: IBase.IResponse.IObject[] = [];
+                    let groups: IBase.IResponse.IObject[] = [];
 
-                return {
-                    id: user._id.toHexString(),
-                    email: user.email,
-                    name: user.name,
-                    gender: IModel.EGender[user.gender],
-                    imageSrc: user.imageSrc,
-                    role: IModel.ERole[user.role],
-                    friends,
-                    groups,
-                    googleAuth: user.googleAuth
-                }
-            }));
+                    return {
+                        id: user._id.toHexString(),
+                        email: user.email,
+                        name: user.name,
+                        gender: IModel.EGender[user.gender],
+                        imageSrc: user.imageSrc,
+                        role: IModel.ERole[user.role],
+                        friends,
+                        groups,
+                        googleAuth: user.googleAuth,
+                    };
+                }),
+            );
         } catch (error) {
             throw error;
         }
     }
 
-    export async function getAllUserTokenExpiredDate(): Promise<IModel.IResponse.IUserTokenExpiredDate[]> {
+    export async function getAllUserTokenExpiredDate(): Promise<
+        IModel.IResponse.IUserTokenExpiredDate[]
+    > {
         try {
             let users: IBase.MongoData<IModel.IUser>[] = await UserDAL.getAllUsers();
 
             return users.map((user) => {
                 return {
                     id: user._id.toHexString(),
-                    tokenValidStartDate: new Date(user.tokenValidStartDate)
-                }
+                    tokenValidStartDate: new Date(user.tokenValidStartDate),
+                };
             });
         } catch (error) {
             throw error;
@@ -54,28 +59,34 @@ export namespace UserController {
     /**
      * getUsers
      */
-    export async function getUsers(): Promise<IModel.IResponse.IUserR[]>
-    export async function getUsers(options: IBase.IGetOptions<IModel.IUser>): Promise<IModel.IResponse.IUserR[]>
-    export async function getUsers(options?: IBase.IGetOptions<IModel.IUser>): Promise<IModel.IResponse.IUserR[]> {
+    export async function getUsers(): Promise<IModel.IResponse.IUserR[]>;
+    export async function getUsers(
+        options: IBase.IGetOptions<IModel.IUser>,
+    ): Promise<IModel.IResponse.IUserR[]>;
+    export async function getUsers(
+        options?: IBase.IGetOptions<IModel.IUser>,
+    ): Promise<IModel.IResponse.IUserR[]> {
         try {
             let users: IBase.MongoData<IModel.IUser>[] = await UserDAL.getUsers(options);
-            return await Promise.all(users.map(async (user) => {
-                let friends: IBase.IResponse.IObject[] = [];
+            return await Promise.all(
+                users.map(async (user) => {
+                    let friends: IBase.IResponse.IObject[] = [];
 
-                let groups: IBase.IResponse.IObject[] = [];
+                    let groups: IBase.IResponse.IObject[] = [];
 
-                return {
-                    id: user._id.toHexString(),
-                    email: user.email,
-                    name: user.name,
-                    gender: IModel.EGender[user.gender],
-                    imageSrc: user.imageSrc,
-                    role: IModel.ERole[user.role],
-                    friends,
-                    groups,
-                    googleAuth: user.googleAuth
-                }
-            }));
+                    return {
+                        id: user._id.toHexString(),
+                        email: user.email,
+                        name: user.name,
+                        gender: IModel.EGender[user.gender],
+                        imageSrc: user.imageSrc,
+                        role: IModel.ERole[user.role],
+                        friends,
+                        groups,
+                        googleAuth: user.googleAuth,
+                    };
+                }),
+            );
         } catch (error) {
             throw error;
         }
@@ -83,8 +94,8 @@ export namespace UserController {
 
     type InputC = IModel.IRequest.IUserC;
     /**
-     * 
-     * @param input 
+     *
+     * @param input
      */
     export async function signUpGoogle(input: InputC): Promise<IModel.User> {
         try {
@@ -96,53 +107,54 @@ export namespace UserController {
             let user: IModel.User = await getUserFromGoogle(input.googleIdToken);
             let data: IBase.MongoData<IModel.IUser> = undefined;
 
-            let isCreate: boolean = !user.id;
+            let isCreate: boolean = !user;
             if (isCreate) {
-                data = {
-                    name: input.name,
-                    role: IModel.ERole.User,
-                    email: input.email,
-                    password: undefined,
-                    googleAuth: true,
-                };
+                user = new IModel.User();
+
+                user.setValue('name', input.name)
+                    .setValue('role', IModel.ERole.User)
+                    .setValue('email', input.email)
+                    .setValue('googleAuth', true);
 
                 if ('gender' in input) {
-                    data.gender = IModel.EGender[input.gender];
+                    user.setValue('gender', IModel.EGender[input.gender]);
                 }
 
                 if ('groupIds' in input) {
-
                 }
 
                 if ('friendIds' in input) {
-
+                    user.setValue('friendIds', input.friendIds);
                 }
 
                 if ('imageBase64' in user) {
-
                 }
-
-                user.data = data;
             } else {
                 /// update
-                data = user.data;
-                data.name = input.name;
-                data.googleAuth = true;
+                user.setValue('name', input.name).setValue('googleAuth', true);
 
                 if ('gender' in input) {
-                    data.gender = IModel.EGender[input.gender];
+                    user.setValue('gender', IModel.EGender[input.gender]);
+                } else {
+                    user.unset('gender');
                 }
 
                 if ('groupIds' in input) {
-
+                } else {
+                    user.unset('groupIds');
                 }
 
                 if ('friendIds' in input) {
-
+                    let friendIds: string[] = await handleReqFriendIds(input.friendIds, user.id);
+                    user.setValue('friendIds', friendIds);
+                } else {
+                    user.unset('friendIds');
                 }
 
+                /// TODO delete image src
                 if ('imageBase64' in user) {
-
+                } else {
+                    user.unset('imageSrc');
                 }
             }
 
@@ -156,6 +168,38 @@ export namespace UserController {
         }
     }
 
+    async function handleReqFriendIds(friendIds: string[], excludeId: string): Promise<string[]> {
+        friendIds = (friendIds || []).filter((x) => x !== excludeId);
+        let friendObjectIds: ObjectId[] = friendIds.map((id) => new ObjectId(id));
+        let friends = await UserDAL.getUsers({
+            _id: {
+                $in: friendObjectIds,
+            },
+        });
+
+        return friends.map((friend) => friend._id.toHexString());
+    }
+
+    export async function handleResFriends(
+        friendIds: string[],
+        excludeId: string,
+    ): Promise<IBase.IResponse.IObject[]> {
+        friendIds = (friendIds || []).filter((x) => x !== excludeId);
+        let friendObjectIds: ObjectId[] = friendIds.map((id) => new ObjectId(id));
+        let friends = await UserDAL.getUsers({
+            _id: {
+                $in: friendObjectIds,
+            },
+        });
+
+        return friends.map((friend) => {
+            return {
+                id: friend._id.toHexString(),
+                name: friend.name,
+            };
+        });
+    }
+
     export async function getUserFromGoogle(token: string): Promise<IModel.User> {
         let ticket: LoginTicket = undefined;
         let email: string = undefined;
@@ -167,12 +211,11 @@ export namespace UserController {
         }
 
         // check whether already sign up
-        let user: IModel.User = new IModel.User();
-        await user.queryByField({
+        let user: IModel.User = await new IModel.User().queryByField({
             equals: {
                 googleAuth: true,
-                email: email
-            }
+                email: email,
+            },
         });
 
         return user;
@@ -187,8 +230,8 @@ export namespace UserController {
         let user: IModel.User = new IModel.User();
         await user.queryByField({
             equals: {
-                email: payload.email
-            }
+                email: payload.email,
+            },
         });
 
         return user;
@@ -198,15 +241,15 @@ export namespace UserController {
         let user: IModel.User = new IModel.User();
         await user.queryByField({
             equals: {
-                email: input.email
-            }
-        })
+                email: input.email,
+            },
+        });
 
         if (!user.id) {
             throw Utility.getError('email or password not correct', 400);
         }
 
-        let password: string = user.data.password;
+        let password: string = user.getValue('password');
         if (!isPasswordSame(input.password, password)) {
             throw Utility.getError('email or password not correct', 400);
         }
@@ -215,43 +258,40 @@ export namespace UserController {
     }
 
     /**
-     * 
-     * @param input 
+     *
+     * @param input
      */
-    export async function signUp(input: InputC, role: IModel.ERole = IModel.ERole.User): Promise<IModel.User> {
+    export async function signUp(
+        input: InputC,
+        role: IModel.ERole = IModel.ERole.User,
+    ): Promise<IModel.User> {
         try {
             if (!('password' in input)) {
                 throw `password can not empty`;
             }
 
             let user: IModel.User = new IModel.User();
-
-            let data: IBase.MongoData<IModel.IUser> = {
-                name: input.name,
-                role: role,
-                email: input.email,
-                password: getHashPassword(input.password),
-                googleAuth: false,
-                tokenValidStartDate: new Date()
-            };
+            user.setValue('name', input.name)
+                .setValue('role', role)
+                .setValue('email', input.email)
+                .setValue('password', getHashPassword(input.password))
+                .setValue('googleAuth', false)
+                .setValue('tokenValidStartDate', new Date());
 
             if ('gender' in input) {
-                data.gender = IModel.EGender[input.gender];
+                user.setValue('gender', IModel.EGender[input.gender]);
             }
 
             if ('groupIds' in input) {
-
             }
 
             if ('friendIds' in input) {
-
+                let friendIds: string[] = await handleReqFriendIds(input.friendIds, user.id);
+                user.setValue('friendIds', friendIds);
             }
 
             if ('imageBase64' in user) {
-
             }
-
-            user.data = data;
 
             await user.save();
 
@@ -287,34 +327,32 @@ export namespace UserController {
     export type InputProfile = IModel.IRequest.IUserProfile & { id: string };
     export async function updateProfile(input: InputProfile): Promise<IModel.User> {
         try {
-            let user: IModel.User = new IModel.User(input.id);
-            await user.query();
+            let user = await new IModel.User().query(input.id);
 
-            let data = user.data;
-
-            if (!user.id) {
+            if (!user) {
                 throw 'user not found';
             }
 
-            data.name = input.name;
+            user.setValue('name', input.name);
 
             if ('gender' in input) {
-                data.gender = IModel.EGender[input.gender];
+                user.setValue('gender', IModel.EGender[input.gender]);
+            } else {
+                user.unset('gender');
             }
 
             if ('groupIds' in input) {
-
             }
 
             if ('friendIds' in input) {
-
+                let friendIds: string[] = await handleReqFriendIds(input.friendIds, user.id);
+                user.setValue('friendIds', friendIds);
+            } else {
+                user.unset('friendIds');
             }
 
             if ('imageBase64' in user) {
-
             }
-
-            user.data = data;
 
             await user.save(false);
 
@@ -324,26 +362,25 @@ export namespace UserController {
         }
     }
 
-    export type InputPassword = IModel.IRequest.IChangePassword & { id: string };
+    export type InputPassword = IModel.IRequest.IChangePassword & {
+        id: string;
+    };
     export async function changePassword(input: InputPassword): Promise<IModel.User> {
-        let user: IModel.User = new IModel.User(input.id);
-        await user.query();
+        let user: IModel.User = await new IModel.User().query(input.id);
 
-        if (!user.id) {
+        if (!user) {
             throw 'user not found';
         }
 
         // check previous password is same
-        let password: string = user.data.password;
+        let password: string = user.getValue('password');
         if (!isPasswordSame(input.previous, password)) {
             throw 'previous password not the same';
         }
 
-        let data = user.data;
+        user.setValue('password', getHashPassword(input.current));
 
-        data.password = getHashPassword(input.current);
-
-        data.tokenValidStartDate = new Date();
+        user.setValue('tokenValidStartDate', new Date());
 
         await user.save();
 

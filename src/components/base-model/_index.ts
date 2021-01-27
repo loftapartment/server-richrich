@@ -1,4 +1,4 @@
-import { Collection, ObjectId } from 'mongodb';
+import { Collection, ObjectId, UpdateQuery } from 'mongodb';
 import { DbService } from '../../../src/services/db';
 import * as IResponse from './response';
 export { IResponse };
@@ -15,8 +15,15 @@ export type MongoData<T> = {
     _updated_at?: Date;
 } & T;
 
+export type TData<T> = keyof ({
+    _id?: ObjectId;
+    _created_at?: Date;
+    _updated_at?: Date;
+} & T);
+
 export interface IGetOptions<T> {
     equals?: Partial<T>;
+    in?: Partial<T>;
     notEquals?: Partial<T>;
 }
 
@@ -36,7 +43,6 @@ export interface INoticeU<T> {
 export type TNotice<T> = INoticeCD<T> | INoticeU<T>;
 
 export class BaseCollection<T> {
-
     protected _id: string = undefined;
     public get id(): string {
         return this._id;
@@ -52,20 +58,40 @@ export class BaseCollection<T> {
         return this._notice$;
     }
 
+    /**
+     * for mongo used
+     */
     private _data: MongoData<T> = undefined;
-    public get data(): MongoData<T> {
-        return this._data;
-    }
-    public set data(value: MongoData<T>) {
-        this._data = value;
-    }
 
     private _innateData: MongoData<T> = undefined;
 
-    constructor()
-    constructor(id: string)
-    constructor(id?: string) {
-        this._id = id;
+    private _updateQuery: UpdateQuery<MongoData<T>> = {};
+
+    constructor() {}
+
+    public setValue<U extends keyof MongoData<T>>(
+        key: keyof MongoData<T>,
+        value: MongoData<T>[U],
+    ): this {
+        this._data[`${key}`] = value;
+
+        return this;
+    }
+
+    public getValue(key: TData<T>): any {
+        return this._data[`${key}`];
+    }
+
+    public unset(key: keyof MongoData<T>): this {
+        if (!this._updateQuery.$unset) {
+            this._updateQuery.$unset = {};
+        }
+
+        (this._updateQuery['$unset'] as any)[`${key}`] = null;
+
+        delete this._data[key];
+
+        return this;
     }
 
     /**
@@ -81,42 +107,50 @@ export class BaseCollection<T> {
             if (!this._id) {
                 this._data._created_at = new Date();
 
-                let result = await this.getCollection<T>(this.collectionName).insertOne(this._data as any);
+                let result = await this.getCollection<T>(this.collectionName).insertOne(
+                    this._data as any,
+                );
 
-                this._id = result.insertedId.toHexString();
+                this._data._id = result.insertedId;
 
                 if (needNotice) {
                     BaseCollection._notice$.next({
                         name: this.collectionName,
                         method: 'c',
-                        data: JSON.parse(JSON.stringify(this.data))
+                        data: JSON.parse(JSON.stringify(this._data)),
                     });
                 }
             } else {
                 this._data._updated_at = new Date();
 
-                let setData = { ...this._data };
-                delete setData._id;
+                delete this._data._id;
 
-                let result = await this.getCollection<T>(this.collectionName).updateOne({
-                    _id: {
-                        $eq: new ObjectId(this._data._id) as any
-                    }
-                }, { $set: setData });
+                this._updateQuery.$set = this._data;
+
+                let result = await this.getCollection<T>(this.collectionName).updateOne(
+                    {
+                        _id: {
+                            $eq: new ObjectId(this._id) as any,
+                        },
+                    },
+                    this._updateQuery,
+                );
+
+                this._data._id = new ObjectId(this._id);
 
                 if (needNotice) {
                     BaseCollection._notice$.next({
                         name: this.collectionName,
                         method: 'u',
                         prevData: this._innateData,
-                        data: this._data
+                        data: this._data,
                     });
-
                 }
             }
 
-            this.setData(this._data);
+            this._updateQuery = {};
 
+            this.setData(this._data);
         } catch (error) {
             throw error;
         }
@@ -125,74 +159,93 @@ export class BaseCollection<T> {
     /**
      * query from db
      */
-    public async query(): Promise<void> {
-        if (!this._id) {
-            throw new Error('_id can not empty');
+    public async query(id: string): Promise<this> {
+        if (!id) {
+            throw new Error('id can not empty');
         }
 
-        let result = await this.getCollection<T>(this.collectionName).findOne({ _id: new ObjectId(this._id) as any });
+        let result = await this.getCollection<T>(this.collectionName).findOne({
+            _id: new ObjectId(id) as any,
+        });
+
+        this.initiation();
+
+        if (!result) return undefined;
 
         this.setData(result);
+
+        return this;
     }
 
     /**
-     * 
-     * @param data 
+     *
+     * @param data
      */
-    public async queryByField(options: IGetOptions<T>): Promise<void> {
+    public async queryByField(options: IGetOptions<T>): Promise<this> {
         try {
             let query: any = {};
             if (options.equals) {
                 Object.keys(options.equals).forEach((key) => {
                     query[`${key}`] = {
-                        $eq: options.equals[key]
-                    }
-                })
+                        $eq: options.equals[key],
+                    };
+                });
             }
 
             if (options.notEquals) {
                 Object.keys(options.equals).forEach((key) => {
                     query[`${key}`] = {
-                        $ne: options.notEquals[key]
-                    }
-                })
+                        $ne: options.notEquals[key],
+                    };
+                });
             }
 
-            let result: MongoData<T> = await this.getCollection<T>(this.collectionName).findOne(query);
+            let result: MongoData<T> = await this.getCollection<T>(this.collectionName).findOne(
+                query,
+            );
 
-            if (!!result) {
-                this.setData(result);
+            this.initiation();
 
-                this._id = result._id.toHexString();
-            }
+            if (!result) return undefined;
 
+            this.setData(result);
+            return this;
         } catch (error) {
             throw error;
         }
     }
 
     public async destroy(): Promise<void> {
-        let result = await this.getCollection<T>(this.collectionName).deleteOne({ _id: new ObjectId(this._id) as any });
+        let result = await this.getCollection<T>(this.collectionName).deleteOne({
+            _id: new ObjectId(this._id) as any,
+        });
 
         BaseCollection._notice$.next({
             name: this.collectionName,
             method: 'd',
-            data: this._data
+            data: this._data,
         });
     }
 
     /**
-     * 
-     * @param name 
+     *
+     * @param name
      */
     private getCollection<T>(name: string): Collection<MongoData<T>> {
         let db = DbService.db;
         return db.collection(name);
     }
 
+    private initiation(): void {
+        this._id = undefined;
+        this._data = undefined;
+        this._innateData = undefined;
+        this._updateQuery = {};
+    }
+
     private setData(input: MongoData<T>) {
+        this._id = input._id.toHexString();
         this._data = input;
         this._innateData = JSON.parse(JSON.stringify(input));
     }
 }
-
